@@ -115,13 +115,20 @@ app.use((req, res, next) => {
 
 // MongoDB connection with proper error handling
 const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    logger.warn('⚠️  MONGODB_URI not configured. Server will run without database.');
+    return;
+  }
+
   try {
+    // Add retry logic for Atlas connection
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       maxPoolSize: parseInt(process.env.DB_MAX_POOL_SIZE) || 10,
       serverSelectionTimeoutMS: parseInt(process.env.DB_TIMEOUT_MS) || 30000,
       socketTimeoutMS: 45000,
       bufferCommands: false,
-      bufferMaxEntries: 0
+      retryWrites: true,
+      w: 'majority'
     });
 
     logger.info(`✅ MongoDB Connected: ${conn.connection.host}`);
@@ -132,7 +139,9 @@ const connectDB = async () => {
     });
 
     mongoose.connection.on('disconnected', () => {
-      logger.warn('MongoDB disconnected');
+      logger.warn('MongoDB disconnected. Attempting to reconnect...');
+      // Attempt to reconnect after a delay
+      setTimeout(connectDB, 5000);
     });
 
     mongoose.connection.on('reconnected', () => {
@@ -140,9 +149,14 @@ const connectDB = async () => {
     });
 
   } catch (error) {
-    logger.error('❌ MongoDB connection failed:', error);
+    logger.error('❌ MongoDB connection failed:', error.message);
     logger.warn('⚠️  Server will continue without database functionality');
-    // Don't exit - allow server to run without DB for API testing
+    
+    // Retry connection after 10 seconds
+    setTimeout(() => {
+      logger.info('Retrying MongoDB connection...');
+      connectDB();
+    }, 10000);
   }
 };
 

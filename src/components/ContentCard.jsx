@@ -1,8 +1,8 @@
 // Individual content card component
 import { useState } from 'react';
-import { Play, Clock, Tag, Star, ExternalLink, Check, Eye, ThumbsUp, MessageCircle } from 'lucide-react';
+import { Play, Clock, Tag, Star, ExternalLink, Check, Eye, ThumbsUp, MessageCircle, Calendar } from 'lucide-react';
 
-const ContentCard = ({ content, onMarkConsumed, onUpdatePriority }) => {
+const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, isScheduled = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getDifficultyColor = (difficulty) => {
@@ -152,6 +152,29 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority }) => {
             Watch
             <ExternalLink size={12} />
           </a>
+          
+          {/* Schedule Button */}
+          <button
+            onClick={() => onSchedule && onSchedule(content)}
+            disabled={isScheduled}
+            className={`inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+              isScheduled
+                ? 'bg-green-900/30 text-green-300 cursor-not-allowed'
+                : 'bg-purple-600 text-white hover:bg-purple-700'
+            }`}
+          >
+            {isScheduled ? (
+              <>
+                <Clock size={14} />
+                Scheduled
+              </>
+            ) : (
+              <>
+                <Calendar size={14} />
+                Schedule
+              </>
+            )}
+          </button>
           
           {!content.consumed && (
             <button

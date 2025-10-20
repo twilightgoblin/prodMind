@@ -13,6 +13,7 @@ import PersonaTuner from './pages/PersonaTuner/PersonaTuner';
 import MetaLearning from './pages/MetaLearning/MetaLearning';
 import YouTubeTest from './pages/YouTubeTest/YouTubeTest';
 import CurateContentTest from './components/CurateContentTest';
+import SmartScheduler from './components/SmartScheduler';
 import { Contact } from 'lucide-react';
 import Footer4Col from './components/Footer/Footer';
 
@@ -46,6 +47,11 @@ const App = () => {
           </div>
         } />
         <Route path="/curate-test" element={<CurateContentTest />} />
+        <Route path="/smart-scheduler" element={
+          <div className="min-h-screen bg-[#060010] pt-20">
+            <SmartScheduler />
+          </div>
+        } />
       </Routes>
     </BrowserRouter>
   );

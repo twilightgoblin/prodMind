@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Calendar, Clock } from 'lucide-react';
+import ScheduleModal from './ScheduleModal';
 
 const CurateContentTest = () => {
   const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedTopics, setSelectedTopics] = useState(['javascript', 'react']);
+  const [scheduleModal, setScheduleModal] = useState({ isOpen: false, content: null });
+  const [scheduledItems, setScheduledItems] = useState(new Set());
 
   const availableTopics = [
     'javascript', 'react', 'python', 'programming', 'productivity', 
@@ -17,7 +20,8 @@ const CurateContentTest = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:5001/api/content/curate', {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+      const response = await fetch(`${apiBaseUrl}/content/curate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,6 +55,19 @@ const CurateContentTest = () => {
         ? prev.filter(t => t !== topic)
         : [...prev, topic]
     );
+  };
+
+  const handleScheduleClick = (item) => {
+    setScheduleModal({ isOpen: true, content: item });
+  };
+
+  const handleScheduleSuccess = (scheduledContent) => {
+    setScheduledItems(prev => new Set([...prev, scheduledContent.contentId]));
+    // You could also show a success message here
+  };
+
+  const closeScheduleModal = () => {
+    setScheduleModal({ isOpen: false, content: null });
   };
 
   const formatDuration = (duration) => {
@@ -166,15 +183,38 @@ const CurateContentTest = () => {
                   </p>
                 )}
 
-                {/* Action */}
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block w-full text-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Watch Video
-                </a>
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Watch Video
+                  </a>
+                  <button
+                    onClick={() => handleScheduleClick(item)}
+                    disabled={scheduledItems.has(item.id)}
+                    className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center gap-1 ${
+                      scheduledItems.has(item.id)
+                        ? 'bg-green-600 text-white cursor-not-allowed'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                  >
+                    {scheduledItems.has(item.id) ? (
+                      <>
+                        <Clock size={14} />
+                        Scheduled
+                      </>
+                    ) : (
+                      <>
+                        <Calendar size={14} />
+                        Schedule
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -196,6 +236,14 @@ const CurateContentTest = () => {
             <p className="text-gray-300">Select topics and click "Curate Content" to get started!</p>
           </div>
         )}
+
+        {/* Schedule Modal */}
+        <ScheduleModal
+          isOpen={scheduleModal.isOpen}
+          onClose={closeScheduleModal}
+          content={scheduleModal.content}
+          onSchedule={handleScheduleSuccess}
+        />
       </div>
     </div>
   );

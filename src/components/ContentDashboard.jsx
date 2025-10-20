@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { RefreshCw, Filter, Search, BookOpen, Clock, TrendingUp } from 'lucide-react';
 import { useContent } from '../hooks/useContent';
 import ContentCard from './ContentCard';
+import ScheduleModal from './ScheduleModal';
 import { debugEnv } from '../debug-env';
 
 const ContentDashboard = () => {
@@ -17,6 +18,8 @@ const ContentDashboard = () => {
   });
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [activeTab, setActiveTab] = useState('curated'); // curated, search, trending
+  const [scheduleModal, setScheduleModal] = useState({ isOpen: false, content: null });
+  const [scheduledItems, setScheduledItems] = useState(new Set());
 
   // Debug environment variables
   console.log('Debug env from component:', debugEnv());
@@ -107,6 +110,19 @@ const ContentDashboard = () => {
 
   const handleFetchTrending = () => {
     fetchTrending(20, '0'); // General category
+  };
+
+  const handleScheduleClick = (item) => {
+    setScheduleModal({ isOpen: true, content: item });
+  };
+
+  const handleScheduleSuccess = (scheduledContent) => {
+    setScheduledItems(prev => new Set([...prev, scheduledContent.contentId]));
+    // You could also show a success message here
+  };
+
+  const closeScheduleModal = () => {
+    setScheduleModal({ isOpen: false, content: null });
   };
 
   if (error) {
@@ -375,6 +391,8 @@ const ContentDashboard = () => {
               content={item}
               onMarkConsumed={markAsConsumed}
               onUpdatePriority={updatePriority}
+              onSchedule={handleScheduleClick}
+              isScheduled={scheduledItems.has(item.id)}
             />
           ))}
         </div>
@@ -400,6 +418,14 @@ const ContentDashboard = () => {
           )}
         </div>
       )}
+
+      {/* Schedule Modal */}
+      <ScheduleModal
+        isOpen={scheduleModal.isOpen}
+        onClose={closeScheduleModal}
+        content={scheduleModal.content}
+        onSchedule={handleScheduleSuccess}
+      />
     </div>
   );
 };
