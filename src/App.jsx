@@ -12,6 +12,7 @@ import MindMap from './pages/MindMap/MindMap';
 import PersonaTuner from './pages/PersonaTuner/PersonaTuner';
 import MetaLearning from './pages/MetaLearning/MetaLearning';
 import YouTubeTest from './pages/YouTubeTest/YouTubeTest';
+import CurateContentTest from './components/CurateContentTest';
 import { Contact } from 'lucide-react';
 import Footer4Col from './components/Footer/Footer';
 
@@ -44,6 +45,7 @@ const App = () => {
             <YouTubeTest />
           </div>
         } />
+        <Route path="/curate-test" element={<CurateContentTest />} />
       </Routes>
     </BrowserRouter>
   );

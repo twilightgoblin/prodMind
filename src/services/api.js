@@ -1,7 +1,7 @@
 // Centralized API service for backend communication
 class ApiService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
     this.userId = 'default'; // For future user authentication
     this.timeout = 30000; // 30 seconds
     this.retryAttempts = 3;

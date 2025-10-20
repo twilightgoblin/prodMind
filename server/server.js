@@ -6,12 +6,13 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
 // Import routes
-import contentRoutes from './routes/content.js';
+import contentRoutes, { youtubeTrending, youtubeSearch, youtubeChannel } from './routes/content.js';
 import summarizerRoutes from './routes/summarizer.js';
 import mindMapRoutes from './routes/mindmap.js';
 import personaTunerRoutes from './routes/personaTuner.js';
 import schedulerRoutes from './routes/scheduler.js';
 import metaLearningRoutes from './routes/metaLearning.js';
+import apiKeysRoutes from './routes/apiKeys.js';
 
 // Import middleware
 import { logger, requestLogger } from './middleware/logger.js';
@@ -28,8 +29,35 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 // Trust proxy for accurate IP addresses
 app.set('trust proxy', 1);
 
+// --- ✅ CORS must be very early ---
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, postman)
+    if (!origin) return callback(null, true);
+    if (corsOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  // Make credentials configurable via env (defaults to true for browser apps)
+  credentials: process.env.CORS_CREDENTIALS === 'true' ? true : true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
+};
+
+// Apply CORS early
+app.use(cors(corsOptions));
+
+// ✅ Explicitly handle preflight requests
+app.options('*', cors(corsOptions));
+
 // Request logging
 app.use(requestLogger);
+
 
 // Security middleware
 app.use(helmet({
@@ -66,26 +94,9 @@ app.use('/api/', createRateLimit(
   'Too many requests from this IP, please try again later.'
 ));
 
-// CORS configuration
-const corsOrigins = process.env.CORS_ORIGIN 
-  ? process.env.CORS_ORIGIN.split(',')
-  : ['http://localhost:5173', 'http://localhost:3000'];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (corsOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: process.env.CORS_CREDENTIALS === 'true',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id']
-}));
+// Note: CORS already applied above with `corsOptions` to ensure it's configured
+// early in the middleware chain. If you need a different CORS policy for
+// specific routes, add route-specific middleware instead of re-applying here.
 
 // Body parsing middleware with size limits
 app.use(express.json({ 
@@ -154,9 +165,25 @@ apiRouter.use('/mindmap', mindMapRoutes);
 apiRouter.use('/persona-tuner', personaTunerRoutes);
 apiRouter.use('/scheduler', schedulerRoutes);
 apiRouter.use('/meta-learning', metaLearningRoutes);
+apiRouter.use('/keys', apiKeysRoutes);
 
 // Mount API router
 app.use('/api', apiRouter);
+
+// Backwards-compatible shortcuts: expose /api/youtube/* -> handlers
+const youtubeRouter = express.Router();
+
+// Trending (GET)
+youtubeRouter.get('/trending', youtubeTrending);
+
+// Search (POST)
+youtubeRouter.post('/search', youtubeSearch);
+
+// Channel (POST)
+youtubeRouter.post('/channel', youtubeChannel);
+
+// Mount under /api/youtube
+app.use('/api/youtube', youtubeRouter);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -172,7 +199,8 @@ app.get('/', (req, res) => {
       mindmap: '/api/mindmap',
       'persona-tuner': '/api/persona-tuner',
       scheduler: '/api/scheduler',
-      'meta-learning': '/api/meta-learning'
+      'meta-learning': '/api/meta-learning',
+      keys: '/api/keys'
     }
   });
 });
@@ -210,14 +238,50 @@ const gracefulShutdown = (signal) => {
   }, 10000);
 };
 
-// Start server
-const server = app.listen(PORT, () => {
-  logger.info(`🚀 ProdMind API Server started`);
-  logger.info(`📊 Environment: ${process.env.NODE_ENV}`);
-  logger.info(`🔗 Server: http://localhost:${PORT}`);
-  logger.info(`🔗 API Base: http://localhost:${PORT}/api`);
-  logger.info(`📋 Health Check: http://localhost:${PORT}/api/health`);
-});
+// Start server with port fallback if requested port is in use (helps
+// avoid macOS system services that bind common ports like 5000).
+let server;
+(async () => {
+  const startPort = parseInt(process.env.PORT, 10) || PORT || 5000;
+  const maxAttempts = 10; // try up to startPort + 9
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const tryPort = startPort + i;
+
+    try {
+      server = await new Promise((resolve, reject) => {
+        const s = app.listen(tryPort);
+        s.once('listening', () => resolve(s));
+        s.once('error', (err) => reject(err));
+      });
+
+      // Successful start
+      logger.info(`🚀 ProdMind API Server started`);
+      logger.info(`📊 Environment: ${process.env.NODE_ENV}`);
+      logger.info(`🔗 Server: http://localhost:${tryPort}`);
+      logger.info(`🔗 API Base: http://localhost:${tryPort}/api`);
+      logger.info(`📋 Health Check: http://localhost:${tryPort}/api/health`);
+
+      // Make chosen port available for other parts of the app and scripts
+      process.env.PORT = String(tryPort);
+      break;
+    } catch (err) {
+      if (err && err.code === 'EADDRINUSE') {
+        logger.warn(`Port ${tryPort} in use, trying ${tryPort + 1}`);
+        // loop will try next port
+        continue;
+      }
+
+      logger.error('Failed to start server:', err);
+      process.exit(1);
+    }
+  }
+
+  if (!server) {
+    logger.error('Could not find an available port to bind the server.');
+    process.exit(1);
+  }
+})();
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, TrendingUp, Sparkles, Play, Clock, Eye, ThumbsUp } from 'lucide-react';
 import contentService from '../../services/contentService';
+import ApiKeyStatus from '../../components/ApiKeyStatus';
 
 const YouTubeTest = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -97,7 +98,12 @@ const YouTubeTest = () => {
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">YouTube API Test</h1>
-        <p className="text-gray-300">Testing YouTube integration with AI analysis</p>
+        <p className="text-gray-300">Testing YouTube integration with AI analysis and dynamic API keys</p>
+      </div>
+
+      {/* API Key Status */}
+      <div className="mb-6">
+        <ApiKeyStatus />
       </div>
 
       {/* Tabs */}

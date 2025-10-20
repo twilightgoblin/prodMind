@@ -1,9 +1,12 @@
 // Content Intelligence Service
 // Handles fetching and analyzing content from various sources
 
+import youtubeService from './youtubeService.js';
+import api from './api.js';
+
 class ContentService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
     console.log('Content Service initialized with API base URL:', this.baseURL);
   }
 
@@ -17,77 +20,113 @@ class ContentService {
     } = options;
 
     try {
-      const response = await fetch(`${this.baseURL}/content/youtube/search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query,
-          maxResults,
-          order,
-          publishedAfter,
-          duration
-        })
+      // Use direct YouTube service with dynamic API key
+      const results = await youtubeService.searchVideos(query, {
+        maxResults,
+        order,
+        publishedAfter,
+        duration
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'YouTube search failed');
-      }
       
-      const data = await response.json();
-      return data.content || [];
+      return results;
     } catch (error) {
       console.error('Error fetching YouTube content:', error);
-      return [];
+      
+      // Fallback to backend if direct API fails
+      try {
+        const response = await fetch(`${this.baseURL}/content/youtube/search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query,
+            maxResults,
+            order,
+            publishedAfter,
+            duration
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'YouTube search failed');
+        }
+        
+        const data = await response.json();
+        return data.content || [];
+      } catch (backendError) {
+        console.error('Backend fallback also failed:', backendError);
+        throw new Error('YouTube search failed. Please check your API configuration.');
+      }
     }
   }
 
   // Fetch content from a specific YouTube channel
   async fetchChannelContent(channelId, maxResults = 10) {
     try {
-      const response = await fetch(`${this.baseURL}/content/youtube/channel`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          channelId,
-          maxResults
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Channel fetch failed');
-      }
-      
-      const data = await response.json();
-      return data.content || [];
+      // Use direct YouTube service with dynamic API key
+      const results = await youtubeService.getChannelVideos(channelId, { maxResults });
+      return results;
     } catch (error) {
       console.error('Error fetching channel content:', error);
-      return [];
+      
+      // Fallback to backend
+      try {
+        const response = await fetch(`${this.baseURL}/content/youtube/channel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            channelId,
+            maxResults
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Channel fetch failed');
+        }
+        
+        const data = await response.json();
+        return data.content || [];
+      } catch (backendError) {
+        console.error('Backend fallback also failed:', backendError);
+        throw new Error('Channel fetch failed. Please check your API configuration.');
+      }
     }
   }
 
   // Fetch trending YouTube content
   async fetchTrendingContent(maxResults = 10, categoryId = '0') {
     try {
-      const response = await fetch(
-        `${this.baseURL}/content/youtube/trending?maxResults=${maxResults}&categoryId=${categoryId}`
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Trending fetch failed');
-      }
-      
-      const data = await response.json();
-      return data.content || [];
+      // Use direct YouTube service with dynamic API key
+      const results = await youtubeService.getTrendingVideos({ 
+        maxResults, 
+        categoryId 
+      });
+      return results;
     } catch (error) {
       console.error('Error fetching trending content:', error);
-      return [];
+      
+      // Fallback to backend
+      try {
+        const response = await fetch(
+          `${this.baseURL}/content/youtube/trending?maxResults=${maxResults}&categoryId=${categoryId}`
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Trending fetch failed');
+        }
+        
+        const data = await response.json();
+        return data.content || [];
+      } catch (backendError) {
+        console.error('Backend fallback also failed:', backendError);
+        throw new Error('Trending fetch failed. Please check your API configuration.');
+      }
     }
   }
 
@@ -144,26 +183,14 @@ class ContentService {
     } = userPreferences;
     
     try {
-      const response = await fetch(`${this.baseURL}/content/curate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          topics,
-          maxResults,
-          minPriority,
-          difficulty,
-          duration
-        })
+      const data = await api.post('/content/curate', {
+        topics,
+        maxResults,
+        minPriority,
+        difficulty,
+        duration
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Curation failed');
-      }
       
-      const data = await response.json();
       return {
         content: data.content || [],
         metadata: data.metadata || {}

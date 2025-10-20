@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
 });
 
 // Search YouTube content
-router.post('/youtube/search', async (req, res) => {
+export async function youtubeSearch(req, res) {
   try {
     const { query, maxResults = 10, order = 'relevance', publishedAfter, duration } = req.body;
     
@@ -114,10 +114,11 @@ router.post('/youtube/search', async (req, res) => {
     console.error('YouTube search error:', error);
     res.status(500).json({ error: error.message });
   }
-});
+}
+router.post('/youtube/search', youtubeSearch);
 
 // Get YouTube channel content
-router.post('/youtube/channel', async (req, res) => {
+export async function youtubeChannel(req, res) {
   try {
     const { channelId, maxResults = 10 } = req.body;
     
@@ -160,10 +161,11 @@ router.post('/youtube/channel', async (req, res) => {
     console.error('YouTube channel error:', error);
     res.status(500).json({ error: error.message });
   }
-});
+}
+router.post('/youtube/channel', youtubeChannel);
 
 // Get trending YouTube content
-router.get('/youtube/trending', async (req, res) => {
+export async function youtubeTrending(req, res) {
   try {
     const { maxResults = 10, categoryId = '0' } = req.query;
 
@@ -206,7 +208,8 @@ router.get('/youtube/trending', async (req, res) => {
     console.error('YouTube trending error:', error);
     res.status(500).json({ error: error.message });
   }
-});
+}
+router.get('/youtube/trending', youtubeTrending);
 
 // Analyze content with AI
 router.post('/analyze', async (req, res) => {
@@ -241,11 +244,23 @@ router.post('/curate', async (req, res) => {
 
     const allContent = [];
     
-    // Search for content on each topic
+    // Search for content on each topic with enhanced queries
     for (const topic of topics) {
       try {
+        // Create more specific search queries based on topic
+        let searchQuery = topic;
+        if (topic === 'programming' || topic === 'coding') {
+          searchQuery = `${topic} tutorial beginner guide`;
+        } else if (topic === 'productivity') {
+          searchQuery = `${topic} tips workflow efficiency`;
+        } else if (topic === 'ai' || topic === 'artificial intelligence') {
+          searchQuery = `${topic} machine learning tutorial`;
+        } else {
+          searchQuery = `${topic} tutorial complete guide`;
+        }
+
         let searchUrl = `https://www.googleapis.com/youtube/v3/search?` +
-          `part=snippet&q=${encodeURIComponent(topic + ' tutorial learning')}&` +
+          `part=snippet&q=${encodeURIComponent(searchQuery)}&` +
           `type=video&maxResults=${Math.ceil(maxResults / topics.length)}&` +
           `order=relevance&regionCode=US&relevanceLanguage=en&` +
           `key=${process.env.YOUTUBE_API_KEY}`;
@@ -258,18 +273,46 @@ router.post('/curate', async (req, res) => {
         
         if (response.ok) {
           const data = await response.json();
-          const topicContent = data.items?.map(item => ({
-            id: item.id.videoId,
-            title: item.snippet.title,
-            description: item.snippet.description,
-            thumbnail: item.snippet.thumbnails.medium.url,
-            channelTitle: item.snippet.channelTitle,
-            publishedAt: item.snippet.publishedAt,
-            url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-            source: 'youtube',
-            type: 'video',
-            searchTopic: topic
-          })) || [];
+          const videoIds = data.items?.map(item => item.id.videoId).join(',');
+          
+          // Get additional video details (duration, view count, etc.)
+          let topicContent = [];
+          if (videoIds) {
+            const detailsResponse = await fetch(
+              `https://www.googleapis.com/youtube/v3/videos?` +
+              `part=contentDetails,statistics&id=${videoIds}&` +
+              `key=${process.env.YOUTUBE_API_KEY}`
+            );
+
+            const detailsData = await detailsResponse.json();
+            const videoDetails = {};
+            
+            detailsData.items?.forEach(item => {
+              videoDetails[item.id] = {
+                duration: item.contentDetails.duration,
+                viewCount: item.statistics.viewCount,
+                likeCount: item.statistics.likeCount,
+                commentCount: item.statistics.commentCount
+              };
+            });
+
+            topicContent = data.items?.map(item => ({
+              id: item.id.videoId,
+              title: item.snippet.title,
+              description: item.snippet.description,
+              thumbnail: item.snippet.thumbnails.medium.url,
+              channelTitle: item.snippet.channelTitle,
+              publishedAt: item.snippet.publishedAt,
+              url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+              source: 'youtube',
+              type: 'video',
+              searchTopic: topic,
+              duration: videoDetails[item.id.videoId]?.duration || null,
+              viewCount: videoDetails[item.id.videoId]?.viewCount || 0,
+              likeCount: videoDetails[item.id.videoId]?.likeCount || 0,
+              commentCount: videoDetails[item.id.videoId]?.commentCount || 0
+            })) || [];
+          }
           
           allContent.push(...topicContent);
         }
