@@ -12,7 +12,8 @@ export const useContent = (userPreferences = {}) => {
     setError(null);
     
     try {
-      const curatedContent = await contentService.curateContent(preferences);
+      const result = await contentService.curateContent(preferences);
+      const curatedContent = result.content || [];
       setContent(curatedContent);
       
       // Store in localStorage for persistence
@@ -25,7 +26,7 @@ export const useContent = (userPreferences = {}) => {
     }
   };
 
-  const searchContent = async (query, maxResults = 10) => {
+  const searchContent = async (query, options = {}) => {
     if (!query.trim()) {
       return;
     }
@@ -34,7 +35,10 @@ export const useContent = (userPreferences = {}) => {
     setError(null);
     
     try {
-      const searchResults = await contentService.fetchYouTubeContent(query, maxResults);
+      const searchResults = await contentService.fetchYouTubeContent(query, {
+        maxResults: 15,
+        ...options
+      });
       
       // Analyze the search results
       const analyzedResults = await Promise.all(
@@ -48,6 +52,49 @@ export const useContent = (userPreferences = {}) => {
     } catch (err) {
       setError(err.message);
       console.error('Error searching content:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTrending = async (maxResults = 20, categoryId = '0') => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const trendingResults = await contentService.fetchTrendingContent(maxResults, categoryId);
+      
+      // Analyze trending content
+      const analyzedResults = await Promise.all(
+        trendingResults.map(async (item) => {
+          const analysis = await contentService.analyzeContent(item);
+          return { ...item, ...analysis };
+        })
+      );
+      
+      setContent(analyzedResults);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching trending content:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const curateContent = async (preferences = {}) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await contentService.curateContent(preferences);
+      const curatedContent = result.content || [];
+      setContent(curatedContent);
+      
+      // Store in localStorage for persistence
+      localStorage.setItem('prodmind_content', JSON.stringify(curatedContent));
+    } catch (err) {
+      setError(err.message);
+      console.error('Error curating content:', err);
     } finally {
       setLoading(false);
     }
@@ -107,6 +154,8 @@ export const useContent = (userPreferences = {}) => {
     markAsConsumed,
     updatePriority,
     fetchContent,
-    searchContent
+    searchContent,
+    fetchTrending,
+    curateContent
   };
 };

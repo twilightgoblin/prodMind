@@ -1,23 +1,45 @@
 // Individual content card component
 import { useState } from 'react';
-import { Play, Clock, Tag, Star, ExternalLink, Check } from 'lucide-react';
+import { Play, Clock, Tag, Star, ExternalLink, Check, Eye, ThumbsUp, MessageCircle } from 'lucide-react';
 
 const ContentCard = ({ content, onMarkConsumed, onUpdatePriority }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'beginner': return 'bg-green-900/30 text-green-300';
+      case 'intermediate': return 'bg-yellow-900/30 text-yellow-300';
+      case 'advanced': return 'bg-red-900/30 text-red-300';
+      default: return 'bg-gray-900/30 text-gray-300';
     }
   };
 
   const getPriorityColor = (priority) => {
-    if (priority >= 8) return 'text-red-500';
-    if (priority >= 6) return 'text-yellow-500';
-    return 'text-green-500';
+    if (priority >= 8) return 'text-red-400';
+    if (priority >= 6) return 'text-yellow-400';
+    return 'text-green-400';
+  };
+
+  const formatNumber = (num) => {
+    if (!num) return '0';
+    const number = parseInt(num);
+    if (number >= 1000000) return `${(number / 1000000).toFixed(1)}M`;
+    if (number >= 1000) return `${(number / 1000).toFixed(1)}K`;
+    return number.toString();
+  };
+
+  const formatDuration = (duration) => {
+    if (!duration) return null;
+    // Parse ISO 8601 duration (PT4M13S) to readable format
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return duration;
+    
+    const hours = parseInt(match[1]) || 0;
+    const minutes = parseInt(match[2]) || 0;
+    const seconds = parseInt(match[3]) || 0;
+    
+    if (hours > 0) return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -38,21 +60,45 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority }) => {
           <p className="text-sm text-gray-400 mb-2">{content.channelTitle}</p>
           
           {/* Metadata */}
-          <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
             {content.duration && (
               <div className="flex items-center gap-1">
                 <Clock size={12} />
-                {content.duration}
+                {formatDuration(content.duration)}
               </div>
             )}
             <div className="flex items-center gap-1">
               <Star size={12} className={getPriorityColor(content.priority)} />
               {content.priority}/10
             </div>
-            <span className={`px-2 py-1 rounded-full ${getDifficultyColor(content.difficulty)}`}>
+            <span className={`px-2 py-1 rounded-full text-xs ${getDifficultyColor(content.difficulty)}`}>
               {content.difficulty}
             </span>
           </div>
+
+          {/* YouTube Stats */}
+          {(content.viewCount || content.likeCount || content.commentCount) && (
+            <div className="flex items-center gap-3 text-xs text-gray-500">
+              {content.viewCount && (
+                <div className="flex items-center gap-1">
+                  <Eye size={12} />
+                  {formatNumber(content.viewCount)} views
+                </div>
+              )}
+              {content.likeCount && (
+                <div className="flex items-center gap-1">
+                  <ThumbsUp size={12} />
+                  {formatNumber(content.likeCount)}
+                </div>
+              )}
+              {content.commentCount && (
+                <div className="flex items-center gap-1">
+                  <MessageCircle size={12} />
+                  {formatNumber(content.commentCount)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
