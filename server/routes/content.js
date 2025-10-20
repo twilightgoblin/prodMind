@@ -1,6 +1,7 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import Content from '../models/Content.js';
+import aiService from '../services/aiService.js';
 
 const router = express.Router();
 
@@ -36,22 +37,109 @@ router.get('/', async (req, res) => {
 // Search YouTube content
 router.post('/youtube/search', async (req, res) => {
   try {
-    const { query, maxResults = 10 } = req.body;
+    const { query, maxResults = 10, order = 'relevance', publishedAfter, duration } = req.body;
     
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
     }
 
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?` +
+    if (!process.env.YOUTUBE_API_KEY) {
+      return res.status(500).json({ error: 'YouTube API key not configured' });
+    }
+
+    let searchUrl = `https://www.googleapis.com/youtube/v3/search?` +
       `part=snippet&q=${encodeURIComponent(query)}&` +
       `type=video&maxResults=${maxResults}&` +
-      `regionCode=IN&relevanceLanguage=en&` +
+      `order=${order}&` +
+      `regionCode=US&relevanceLanguage=en&` +
+      `key=${process.env.YOUTUBE_API_KEY}`;
+
+    if (publishedAfter) {
+      searchUrl += `&publishedAfter=${publishedAfter}`;
+    }
+    if (duration) {
+      searchUrl += `&videoDuration=${duration}`;
+    }
+
+    const response = await fetch(searchUrl);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`YouTube API error: ${errorData.error?.message || 'Request failed'}`);
+    }
+
+    const data = await response.json();
+    const videoIds = data.items?.map(item => item.id.videoId).join(',');
+    
+    // Get additional video details (duration, view count, etc.)
+    let detailedContent = [];
+    if (videoIds) {
+      const detailsResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?` +
+        `part=contentDetails,statistics&id=${videoIds}&` +
+        `key=${process.env.YOUTUBE_API_KEY}`
+      );
+
+      const detailsData = await detailsResponse.json();
+      const videoDetails = {};
+      
+      detailsData.items?.forEach(item => {
+        videoDetails[item.id] = {
+          duration: item.contentDetails.duration,
+          viewCount: item.statistics.viewCount,
+          likeCount: item.statistics.likeCount,
+          commentCount: item.statistics.commentCount
+        };
+      });
+
+      detailedContent = data.items?.map(item => ({
+        id: item.id.videoId,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        thumbnail: item.snippet.thumbnails.medium.url,
+        channelTitle: item.snippet.channelTitle,
+        publishedAt: item.snippet.publishedAt,
+        url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+        source: 'youtube',
+        type: 'video',
+        duration: videoDetails[item.id.videoId]?.duration || null,
+        viewCount: videoDetails[item.id.videoId]?.viewCount || 0,
+        likeCount: videoDetails[item.id.videoId]?.likeCount || 0,
+        commentCount: videoDetails[item.id.videoId]?.commentCount || 0
+      })) || [];
+    }
+
+    res.json({ content: detailedContent });
+  } catch (error) {
+    console.error('YouTube search error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get YouTube channel content
+router.post('/youtube/channel', async (req, res) => {
+  try {
+    const { channelId, maxResults = 10 } = req.body;
+    
+    if (!channelId) {
+      return res.status(400).json({ error: 'Channel ID is required' });
+    }
+
+    if (!process.env.YOUTUBE_API_KEY) {
+      return res.status(500).json({ error: 'YouTube API key not configured' });
+    }
+
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?` +
+      `part=snippet&channelId=${channelId}&` +
+      `type=video&maxResults=${maxResults}&` +
+      `order=date&` +
       `key=${process.env.YOUTUBE_API_KEY}`
     );
 
     if (!response.ok) {
-      throw new Error('YouTube API request failed');
+      const errorData = await response.json();
+      throw new Error(`YouTube API error: ${errorData.error?.message || 'Request failed'}`);
     }
 
     const data = await response.json();
@@ -69,6 +157,53 @@ router.post('/youtube/search', async (req, res) => {
 
     res.json({ content: formattedContent });
   } catch (error) {
+    console.error('YouTube channel error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get trending YouTube content
+router.get('/youtube/trending', async (req, res) => {
+  try {
+    const { maxResults = 10, categoryId = '0' } = req.query;
+
+    if (!process.env.YOUTUBE_API_KEY) {
+      return res.status(500).json({ error: 'YouTube API key not configured' });
+    }
+
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?` +
+      `part=snippet,contentDetails,statistics&` +
+      `chart=mostPopular&maxResults=${maxResults}&` +
+      `regionCode=US&videoCategoryId=${categoryId}&` +
+      `key=${process.env.YOUTUBE_API_KEY}`
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`YouTube API error: ${errorData.error?.message || 'Request failed'}`);
+    }
+
+    const data = await response.json();
+    const formattedContent = data.items?.map(item => ({
+      id: item.id,
+      title: item.snippet.title,
+      description: item.snippet.description,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      channelTitle: item.snippet.channelTitle,
+      publishedAt: item.snippet.publishedAt,
+      url: `https://www.youtube.com/watch?v=${item.id}`,
+      source: 'youtube',
+      type: 'video',
+      duration: item.contentDetails.duration,
+      viewCount: item.statistics.viewCount,
+      likeCount: item.statistics.likeCount,
+      commentCount: item.statistics.commentCount
+    })) || [];
+
+    res.json({ content: formattedContent });
+  } catch (error) {
+    console.error('YouTube trending error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -82,55 +217,109 @@ router.post('/analyze', async (req, res) => {
       return res.status(400).json({ error: 'Content with title is required' });
     }
 
-    const prompt = `Analyze this content and provide a JSON response:
-{
-  "summary": "A concise 2-3 sentence summary",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "priority": 8,
-  "difficulty": "beginner|intermediate|advanced"
-}
-
-Title: ${content.title}
-Description: ${content.description || ''}
-Channel: ${content.channelTitle || ''}`;
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 400,
-        temperature: 0.3
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('OpenAI API request failed');
-    }
-
-    const data = await response.json();
-    const analysisText = data.choices[0].message.content;
-    
-    // Parse JSON response
-    let analysis;
-    try {
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-      analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
-    } catch {
-      analysis = {
-        summary: 'Analysis failed - please try again',
-        tags: ['content'],
-        priority: 5,
-        difficulty: 'intermediate'
-      };
-    }
-
+    const analysis = await aiService.analyzeContent(content);
     res.json({ analysis });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Intelligent content curation - combines YouTube search with AI analysis
+router.post('/curate', async (req, res) => {
+  try {
+    const { 
+      topics = ['programming', 'productivity'], 
+      maxResults = 20, 
+      minPriority = 6,
+      difficulty = 'all',
+      duration = 'any'
+    } = req.body;
+
+    if (!process.env.YOUTUBE_API_KEY) {
+      return res.status(500).json({ error: 'YouTube API key not configured' });
+    }
+
+    const allContent = [];
+    
+    // Search for content on each topic
+    for (const topic of topics) {
+      try {
+        let searchUrl = `https://www.googleapis.com/youtube/v3/search?` +
+          `part=snippet&q=${encodeURIComponent(topic + ' tutorial learning')}&` +
+          `type=video&maxResults=${Math.ceil(maxResults / topics.length)}&` +
+          `order=relevance&regionCode=US&relevanceLanguage=en&` +
+          `key=${process.env.YOUTUBE_API_KEY}`;
+
+        if (duration !== 'any') {
+          searchUrl += `&videoDuration=${duration}`;
+        }
+
+        const response = await fetch(searchUrl);
+        
+        if (response.ok) {
+          const data = await response.json();
+          const topicContent = data.items?.map(item => ({
+            id: item.id.videoId,
+            title: item.snippet.title,
+            description: item.snippet.description,
+            thumbnail: item.snippet.thumbnails.medium.url,
+            channelTitle: item.snippet.channelTitle,
+            publishedAt: item.snippet.publishedAt,
+            url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+            source: 'youtube',
+            type: 'video',
+            searchTopic: topic
+          })) || [];
+          
+          allContent.push(...topicContent);
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch content for topic: ${topic}`, error.message);
+      }
+    }
+
+    // Analyze each piece of content with AI
+    const analyzedContent = [];
+    for (const content of allContent) {
+      try {
+        const analysis = await aiService.analyzeContent(content);
+        const enrichedContent = {
+          ...content,
+          ...analysis,
+          curatedAt: new Date().toISOString()
+        };
+        
+        // Filter by criteria
+        if (enrichedContent.priority >= minPriority) {
+          if (difficulty === 'all' || enrichedContent.difficulty === difficulty) {
+            analyzedContent.push(enrichedContent);
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to analyze content: ${content.title}`, error.message);
+      }
+    }
+
+    // Sort by priority and remove duplicates
+    const uniqueContent = analyzedContent
+      .filter((content, index, self) => 
+        index === self.findIndex(c => c.id === content.id)
+      )
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, maxResults);
+
+    res.json({ 
+      content: uniqueContent,
+      metadata: {
+        totalFound: allContent.length,
+        totalAnalyzed: analyzedContent.length,
+        totalReturned: uniqueContent.length,
+        topics,
+        criteria: { minPriority, difficulty, duration }
+      }
+    });
+  } catch (error) {
+    console.error('Content curation error:', error);
     res.status(500).json({ error: error.message });
   }
 });

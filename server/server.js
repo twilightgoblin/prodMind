@@ -130,7 +130,8 @@ const connectDB = async () => {
 
   } catch (error) {
     logger.error('❌ MongoDB connection failed:', error);
-    process.exit(1);
+    logger.warn('⚠️  Server will continue without database functionality');
+    // Don't exit - allow server to run without DB for API testing
   }
 };
 
