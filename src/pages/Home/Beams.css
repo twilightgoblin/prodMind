@@ -1,0 +1,15 @@
+.beams-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.fullscreen-page {
+  height: 1000vh; /* full viewport height */
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;          /* optional, for centering content */
+  flex-direction: column; /* optional */
+}
+

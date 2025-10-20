@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # MongoDB for development
+  mongodb:
+    image: mongo:7.0
+    container_name: prodmind-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: productive-content
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+    networks:
+      - prodmind-dev-network
+
+  # Redis for development
+  redis:
+    image: redis:7-alpine
+    container_name: prodmind-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - prodmind-dev-network
+
+volumes:
+  mongodb_dev_data:
+    driver: local
+
+networks:
+  prodmind-dev-network:
+    driver: bridge
