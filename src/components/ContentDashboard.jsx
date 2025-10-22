@@ -4,7 +4,7 @@ import { RefreshCw, Filter, Search, BookOpen, Clock, TrendingUp } from 'lucide-r
 import { useContent } from '../hooks/useContent';
 import ContentCard from './ContentCard';
 import ScheduleModal from './ScheduleModal';
-import { debugEnv } from '../debug-env';
+
 
 const ContentDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,8 +21,7 @@ const ContentDashboard = () => {
   const [scheduleModal, setScheduleModal] = useState({ isOpen: false, content: null });
   const [scheduledItems, setScheduledItems] = useState(new Set());
 
-  // Debug environment variables
-  console.log('Debug env from component:', debugEnv());
+
 
   const { 
     content, 

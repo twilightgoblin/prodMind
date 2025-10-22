@@ -9,8 +9,7 @@ import ContentDashboard from './components/ContentDashboard';
 
 import Summarizer from './pages/Summarizer/Summarizer';
 
-import YouTubeTest from './pages/YouTubeTest/YouTubeTest';
-import CurateContentTest from './components/CurateContentTest';
+
 import SmartScheduler from './components/SmartScheduler';
 import VideoPlayer from './pages/VideoPlayer/VideoPlayer';
 import VideoNotes from './pages/VideoNotes/VideoNotes';
@@ -39,12 +38,7 @@ const App = () => {
 
         <Route path="/summarizer" element={<Summarizer />} />
 
-        <Route path="/youtube-test" element={
-          <div className="min-h-screen bg-[#060010] pt-20">
-            <YouTubeTest />
-          </div>
-        } />
-        <Route path="/curate-test" element={<CurateContentTest />} />
+
         <Route path="/smart-scheduler" element={
           <div className="min-h-screen bg-[#060010] pt-20">
             <SmartScheduler />
