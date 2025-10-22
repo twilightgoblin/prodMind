@@ -1,5 +1,5 @@
-// Active Summarizer Dashboard Component
-import { useState } from 'react';
+// Enhanced Smart Summarizer Dashboard Component
+import { useState, useEffect } from 'react';
 import { 
   FileText, 
   Zap, 
@@ -8,7 +8,11 @@ import {
   BookOpen, 
   Clock, 
   Star,
-  TrendingUp
+  TrendingUp,
+  Video,
+  CheckCircle,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 import { useSummarizer } from '../hooks/useSummarizer';
 import { useContent } from '../hooks/useContent';
@@ -22,6 +26,10 @@ const SummarizerDashboard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedContent, setSelectedContent] = useState(null);
   const [summaryMode, setSummaryMode] = useState('insight');
+  const [completedVideos, setCompletedVideos] = useState([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const [topicSearchResults, setTopicSearchResults] = useState([]);
+  const [searchingTopics, setSearchingTopics] = useState(false);
 
   const { content } = useContent();
   const {
@@ -32,8 +40,48 @@ const SummarizerDashboard = () => {
     addNotes,
     getAllSummaries,
     hasSummary,
-    getSummaryStats
+    getSummaryStats,
+    searchTopics,
+    summarizeCompletedVideo,
+    deleteSummary
   } = useSummarizer();
+
+  // Fetch completed videos on component mount
+  useEffect(() => {
+    fetchCompletedVideos();
+  }, []);
+
+  const fetchCompletedVideos = async () => {
+    setLoadingVideos(true);
+    try {
+      const response = await fetch('/api/video-notes');
+      if (response.ok) {
+        const data = await response.json();
+        setCompletedVideos(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching completed videos:', error);
+    } finally {
+      setLoadingVideos(false);
+    }
+  };
+
+  const handleTopicSearch = async (query) => {
+    if (!query.trim()) {
+      setTopicSearchResults([]);
+      return;
+    }
+
+    setSearchingTopics(true);
+    try {
+      const results = await searchTopics(query);
+      setTopicSearchResults(results);
+    } catch (error) {
+      console.error('Error searching topics:', error);
+    } finally {
+      setSearchingTopics(false);
+    }
+  };
 
   const stats = getSummaryStats();
   const allSummaries = getAllSummaries();
@@ -80,6 +128,72 @@ const SummarizerDashboard = () => {
     setShowCreateModal(false);
     setCustomTopic('');
     setCustomDescription('');
+    // Auto-navigate to summaries tab after creation
+    setActiveTab('summaries');
+  };
+
+  const handleDeleteSummary = async (summaryId) => {
+    try {
+      await deleteSummary(summaryId);
+    } catch (error) {
+      console.error('Error deleting summary:', error);
+    }
+  };
+
+  const handleSummarizeCompletedVideo = async (video, mode) => {
+    const videoContent = {
+      id: `video_${video.videoId}_${Date.now()}`,
+      title: video.title,
+      description: video.notes,
+      type: 'completed_video',
+      videoId: video.videoId,
+      videoUrl: video.videoUrl,
+      tags: video.title.split(' ').filter(word => word.length > 2),
+      difficulty: 'intermediate',
+      priority: 9,
+      source: 'Completed Video',
+      channelTitle: 'Video Notes'
+    };
+    
+    await summarizeContent(videoContent, mode);
+    // Auto-navigate to summaries tab after creation
+    setActiveTab('summaries');
+  };
+
+  const handleCreateTopicSummary = async (topicResult) => {
+    const topicContent = {
+      id: `topic_${Date.now()}`,
+      title: topicResult.title,
+      description: topicResult.description,
+      type: 'topic_search',
+      tags: topicResult.title.split(' ').filter(word => word.length > 2),
+      difficulty: topicResult.difficulty,
+      priority: 8,
+      source: 'Topic Search',
+      channelTitle: 'Smart Search'
+    };
+    
+    await summarizeContent(topicContent, 'insight');
+    // Auto-navigate to summaries tab after creation
+    setActiveTab('summaries');
+  };
+
+  const handleCreateCustomTopicSummary = async (topic) => {
+    const customContent = {
+      id: `custom_topic_${Date.now()}`,
+      title: topic,
+      description: `Learn about ${topic} - comprehensive guide and insights`,
+      type: 'custom',
+      tags: topic.split(' ').filter(word => word.length > 2),
+      difficulty: 'intermediate',
+      priority: 8,
+      source: 'Custom Topic',
+      channelTitle: 'User Generated'
+    };
+    
+    await summarizeContent(customContent, 'insight');
+    // Auto-navigate to summaries tab after creation
+    setActiveTab('summaries');
   };
 
   const [summaryType, setSummaryType] = useState('existing'); // 'existing' or 'custom'
@@ -353,6 +467,189 @@ const SummarizerDashboard = () => {
     </div>
   );
 
+  const CompletedVideosView = () => (
+    <div className="space-y-6">
+      <div className="bg-gray-900/50 backdrop-blur-sm p-4 rounded-lg border border-gray-800">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-medium flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-400" />
+            Completed Videos Ready for Summarization
+          </h3>
+          <button
+            onClick={fetchCompletedVideos}
+            className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+          >
+            Refresh
+          </button>
+        </div>
+        
+        {loadingVideos ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+            <span className="ml-2 text-gray-400">Loading completed videos...</span>
+          </div>
+        ) : completedVideos.length > 0 ? (
+          <div className="grid gap-4">
+            {completedVideos.map((video) => (
+              <div key={video._id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="text-white font-medium mb-2">{video.title}</h4>
+                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">{video.notes}</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Video ID: {video.videoId}</span>
+                      <span>Updated: {new Date(video.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => handleSummarizeCompletedVideo(video, 'insight')}
+                      disabled={loading}
+                      className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
+                    >
+                      <Brain size={14} />
+                      Smart Summary
+                    </button>
+                    <button
+                      onClick={() => handleSummarizeCompletedVideo(video, 'detailed')}
+                      disabled={loading}
+                      className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50 flex items-center gap-1"
+                    >
+                      <FileText size={14} />
+                      Detailed
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Video size={48} className="text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">No Completed Videos</h3>
+            <p className="text-gray-400">
+              Watch some videos and take notes to see them here for summarization.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const TopicSearchView = () => (
+    <div className="space-y-6">
+      <div className="bg-gray-900/50 backdrop-blur-sm p-4 rounded-lg border border-gray-800">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-5 w-5 text-purple-400" />
+          <h3 className="text-white font-medium">Smart Topic Search & Learning</h3>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="relative">
+            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search any topic to learn about... (e.g., Machine Learning, React Hooks, Time Management)"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                handleTopicSearch(e.target.value);
+              }}
+              className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Popular Topics */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-300 mb-3">Popular Learning Topics</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {[
+                'Machine Learning',
+                'React Development',
+                'Time Management',
+                'Investment Strategies',
+                'Public Speaking',
+                'Data Science',
+                'Digital Marketing',
+                'Mindfulness',
+                'Productivity Hacks',
+                'Leadership Skills',
+                'Cryptocurrency',
+                'UI/UX Design'
+              ].map(topic => (
+                <button
+                  key={topic}
+                  onClick={() => {
+                    setSearchQuery(topic);
+                    handleTopicSearch(topic);
+                  }}
+                  className="p-2 text-left text-sm bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-gray-300 hover:text-white transition-colors"
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Search Results */}
+          {searchingTopics && (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-400"></div>
+              <span className="ml-2 text-gray-400">Searching for learning resources...</span>
+            </div>
+          )}
+
+          {topicSearchResults.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-gray-300">Learning Resources Found</h4>
+              <div className="grid gap-3">
+                {topicSearchResults.map((result, index) => (
+                  <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h5 className="text-white font-medium mb-1">{result.title}</h5>
+                        <p className="text-gray-400 text-sm mb-2">{result.description}</p>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <span className="bg-gray-700 px-2 py-1 rounded">{result.difficulty}</span>
+                          <span>{result.estimatedTime}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleCreateTopicSummary(result)}
+                        disabled={loading}
+                        className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        <Zap size={14} />
+                        Summarize
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {searchQuery && !searchingTopics && topicSearchResults.length === 0 && (
+            <div className="text-center py-8">
+              <Search size={48} className="text-gray-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-white mb-2">No Results Found</h3>
+              <p className="text-gray-400 mb-4">
+                Try a different search term or create a custom summary for "{searchQuery}"
+              </p>
+              <button
+                onClick={() => handleCreateCustomTopicSummary(searchQuery)}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2 mx-auto"
+              >
+                <Plus size={16} />
+                Create Custom Summary
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   const AnalyticsView = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -447,17 +744,23 @@ const SummarizerDashboard = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-900/50 p-1 rounded-lg border border-gray-800">
-        {['summaries', 'analytics'].map(tab => (
+        {[
+          { key: 'summaries', label: 'Summaries', icon: FileText },
+          { key: 'completed', label: 'Completed Videos', icon: Video },
+          { key: 'search', label: 'Topic Search', icon: Search },
+          { key: 'analytics', label: 'Analytics', icon: TrendingUp }
+        ].map(({ key, label, icon: Icon }) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+              activeTab === key
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            <Icon size={16} />
+            {label}
           </button>
         ))}
       </div>
@@ -524,6 +827,7 @@ const SummarizerDashboard = () => {
                   summary={summary}
                   onRate={rateSummary}
                   onAddNotes={addNotes}
+                  onDelete={handleDeleteSummary}
                 />
               ))}
             </div>
@@ -567,6 +871,10 @@ const SummarizerDashboard = () => {
           )}
         </>
       )}
+
+      {activeTab === 'completed' && <CompletedVideosView />}
+
+      {activeTab === 'search' && <TopicSearchView />}
 
       {activeTab === 'analytics' && <AnalyticsView />}
 

@@ -6,19 +6,31 @@ class SummarizerService {
     this.apiKeys = {
       openai: import.meta.env.VITE_OPENAI_API_KEY,
       assemblyai: import.meta.env.VITE_ASSEMBLYAI_API_KEY, // For audio transcription
+      huggingface: import.meta.env.VITE_HUGGINGFACE_API_KEY, // For Hugging Face models
     };
     this.summaryModes = ['tldr', 'insight', 'detailed'];
+    this.huggingFaceModels = {
+      summarization: 'facebook/bart-large-cnn',
+      textGeneration: 'microsoft/DialoGPT-medium',
+      questionAnswering: 'deepset/roberta-base-squad2'
+    };
     
     // Debug: Check if API keys are loaded
     const hasOpenAI = this.apiKeys.openai && 
                      !this.apiKeys.openai.includes('your_openai_api_key') && 
                      this.apiKeys.openai.startsWith('sk-') &&
                      this.apiKeys.openai.length > 20;
+
+    const hasHuggingFace = this.apiKeys.huggingface && 
+                          !this.apiKeys.huggingface.includes('your_huggingface_api_key') && 
+                          this.apiKeys.huggingface.startsWith('hf_') &&
+                          this.apiKeys.huggingface.length > 20;
     
     console.log('OpenAI API Key configured:', hasOpenAI ? 'Yes' : 'No');
+    console.log('Hugging Face API Key configured:', hasHuggingFace ? 'Yes' : 'No');
     
-    if (!hasOpenAI) {
-      console.info('💡 For AI-powered summaries, configure your OpenAI API key in your .env file. See .env.example for details.');
+    if (!hasOpenAI && !hasHuggingFace) {
+      console.info('💡 For AI-powered summaries, configure your OpenAI or Hugging Face API key in your .env file. See .env.example for details.');
     }
   }
 
@@ -115,7 +127,7 @@ The speaker discusses key concepts, provides examples, and shares insights based
   async generateAISummary(textContent, originalContent, mode, customPrompt) {
     const prompt = customPrompt || this.buildSummaryPrompt(textContent, originalContent, mode);
 
-    // Try OpenAI if available and properly configured
+    // Try OpenAI first if available and properly configured
     if (this.apiKeys.openai && 
         !this.apiKeys.openai.includes('your_openai_api_key') && 
         this.apiKeys.openai.startsWith('sk-') &&
@@ -123,14 +135,36 @@ The speaker discusses key concepts, provides examples, and shares insights based
       try {
         return await this.generateOpenAISummary(textContent, originalContent, mode, prompt);
       } catch (error) {
-        console.warn('OpenAI failed, using rule-based fallback:', error.message);
+        console.warn('OpenAI failed, trying Hugging Face:', error.message);
+        // Try Hugging Face as fallback
+        if (this.apiKeys.huggingface && 
+            !this.apiKeys.huggingface.includes('your_huggingface_api_key') && 
+            this.apiKeys.huggingface.startsWith('hf_')) {
+          try {
+            return await this.generateHuggingFaceSummary(textContent, originalContent, mode, prompt);
+          } catch (hfError) {
+            console.warn('Hugging Face also failed, using rule-based fallback:', hfError.message);
+          }
+        }
         // Fall back to rule-based summary
         return await this.generateFallbackSummary(textContent, originalContent, mode);
       }
     }
 
-    // No OpenAI key configured, use rule-based fallback
-    console.info('Using rule-based summary generation. Configure OpenAI API key for AI-powered summaries.');
+    // Try Hugging Face if OpenAI not available
+    if (this.apiKeys.huggingface && 
+        !this.apiKeys.huggingface.includes('your_huggingface_api_key') && 
+        this.apiKeys.huggingface.startsWith('hf_')) {
+      try {
+        return await this.generateHuggingFaceSummary(textContent, originalContent, mode, prompt);
+      } catch (error) {
+        console.warn('Hugging Face failed, using rule-based fallback:', error.message);
+        return await this.generateFallbackSummary(textContent, originalContent, mode);
+      }
+    }
+
+    // No AI keys configured, use rule-based fallback
+    console.info('Using rule-based summary generation. Configure OpenAI or Hugging Face API key for AI-powered summaries.');
     return await this.generateFallbackSummary(textContent, originalContent, mode);
   }
 
@@ -179,9 +213,261 @@ The speaker discusses key concepts, provides examples, and shares insights based
     return this.parseSummaryResponse(aiResponse, originalContent, mode);
   }
 
+  // Hugging Face summary generation
+  async generateHuggingFaceSummary(textContent, originalContent, mode, prompt) {
+    try {
+      // For summarization, use BART model
+      const summaryResponse = await fetch(`https://api-inference.huggingface.co/models/${this.huggingFaceModels.summarization}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKeys.huggingface}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          inputs: textContent.slice(0, 1024), // BART has input limits
+          parameters: {
+            max_length: this.getMaxTokens(mode),
+            min_length: Math.floor(this.getMaxTokens(mode) / 3),
+            do_sample: false
+          }
+        })
+      });
 
+      if (!summaryResponse.ok) {
+        let errorMessage = `Hugging Face API request failed (${summaryResponse.status})`;
+        
+        try {
+          const errorData = await summaryResponse.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (parseError) {
+          // Use status-based message
+        }
+        
+        throw new Error(errorMessage);
+      }
 
+      const summaryData = await summaryResponse.json();
+      let aiResponse = '';
 
+      if (Array.isArray(summaryData) && summaryData[0]?.summary_text) {
+        aiResponse = summaryData[0].summary_text;
+      } else {
+        throw new Error('Unexpected response format from Hugging Face');
+      }
+
+      // Enhance the basic summary based on mode
+      aiResponse = this.enhanceHuggingFaceSummary(aiResponse, originalContent, mode);
+      
+      return this.parseSummaryResponse(aiResponse, originalContent, mode);
+    } catch (error) {
+      console.error('Hugging Face API error:', error);
+      throw error;
+    }
+  }
+
+  // Enhance Hugging Face summary based on mode
+  enhanceHuggingFaceSummary(basicSummary, originalContent, mode) {
+    const title = originalContent.title || 'Content';
+    const isCustomTopic = originalContent.type === 'custom' || originalContent.type === 'topic_search';
+    
+    switch (mode) {
+      case 'tldr':
+        return `**${title} - Quick Summary**
+
+${basicSummary}
+
+**Key Takeaways:**
+• Essential knowledge for understanding ${title}
+• Practical applications in real-world scenarios
+• Foundation for further learning
+
+**Next Steps:** Apply one concept immediately to see results`;
+
+      case 'insight':
+        return `**Understanding ${title}**
+
+**Core Summary:**
+${basicSummary}
+
+**Key Insights:**
+• **Main Concept**: ${title} provides valuable knowledge and practical applications
+• **Why It Matters**: This understanding helps in real-world problem-solving
+• **Practical Use**: Can be applied in various professional and personal contexts
+
+**Learning Path:**
+1. Start with the basic concepts outlined above
+2. Practice with simple examples
+3. Apply to real scenarios
+4. Build complexity gradually
+
+**Time Investment:** 30-60 minutes for solid understanding`;
+
+      case 'detailed':
+        return `**Comprehensive Guide: ${title}**
+
+**Executive Summary:**
+${basicSummary}
+
+**Detailed Analysis:**
+This topic encompasses both theoretical understanding and practical application. The content provides a foundation for deeper learning and real-world implementation.
+
+**Key Components:**
+• **Fundamentals**: Core principles and basic concepts
+• **Applications**: How this knowledge applies in practice
+• **Benefits**: Value and advantages of understanding this topic
+• **Implementation**: Step-by-step approach to application
+
+**Learning Framework:**
+1. **Foundation**: Master basic definitions and concepts
+2. **Practice**: Work through examples and exercises
+3. **Application**: Use in real-world scenarios
+4. **Mastery**: Develop advanced understanding
+
+**Success Indicators:**
+• Can explain concepts clearly to others
+• Successfully apply in practical situations
+• Recognize when and how to use this knowledge
+
+**Advanced Exploration:**
+Continue learning through specialized resources, communities, and hands-on projects.`;
+
+      default:
+        return basicSummary;
+    }
+  }
+
+  // Search topics using Hugging Face and other sources
+  async searchTopics(query) {
+    const results = [];
+
+    // Try Hugging Face question-answering for topic exploration
+    if (this.apiKeys.huggingface && 
+        !this.apiKeys.huggingface.includes('your_huggingface_api_key') && 
+        this.apiKeys.huggingface.startsWith('hf_')) {
+      try {
+        const topicResults = await this.searchTopicsWithHuggingFace(query);
+        results.push(...topicResults);
+      } catch (error) {
+        console.warn('Hugging Face topic search failed:', error.message);
+      }
+    }
+
+    // Add curated topic suggestions based on query
+    const curatedResults = this.getCuratedTopicSuggestions(query);
+    results.push(...curatedResults);
+
+    return results.slice(0, 10); // Limit to 10 results
+  }
+
+  // Search topics using Hugging Face models
+  async searchTopicsWithHuggingFace(query) {
+    const context = `Learning resources and educational content about ${query}. This includes tutorials, guides, courses, and practical applications for understanding ${query} concepts, principles, and real-world implementations.`;
+    
+    try {
+      const response = await fetch(`https://api-inference.huggingface.co/models/${this.huggingFaceModels.questionAnswering}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKeys.huggingface}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          inputs: {
+            question: `What are the key learning topics and concepts for ${query}?`,
+            context: context
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.answer) {
+          return [{
+            title: `${query} - AI Generated Learning Path`,
+            description: data.answer,
+            difficulty: 'intermediate',
+            estimatedTime: '45-90 minutes',
+            source: 'AI Analysis',
+            confidence: data.score || 0.8
+          }];
+        }
+      }
+    } catch (error) {
+      console.warn('Hugging Face search error:', error);
+    }
+
+    return [];
+  }
+
+  // Get curated topic suggestions
+  getCuratedTopicSuggestions(query) {
+    const lowerQuery = query.toLowerCase();
+    const suggestions = [];
+
+    // Technology topics
+    if (lowerQuery.includes('react') || lowerQuery.includes('javascript') || lowerQuery.includes('programming')) {
+      suggestions.push({
+        title: `${query} - Complete Developer Guide`,
+        description: `Comprehensive learning path for ${query} including fundamentals, best practices, and real-world applications.`,
+        difficulty: 'intermediate',
+        estimatedTime: '2-4 hours',
+        source: 'Curated Learning Path'
+      });
+    }
+
+    // Business/Productivity topics
+    if (lowerQuery.includes('productivity') || lowerQuery.includes('management') || lowerQuery.includes('business')) {
+      suggestions.push({
+        title: `${query} - Professional Development`,
+        description: `Strategic approach to mastering ${query} with actionable frameworks and proven methodologies.`,
+        difficulty: 'beginner',
+        estimatedTime: '1-2 hours',
+        source: 'Professional Development'
+      });
+    }
+
+    // Science/Learning topics
+    if (lowerQuery.includes('machine learning') || lowerQuery.includes('ai') || lowerQuery.includes('data')) {
+      suggestions.push({
+        title: `${query} - Technical Deep Dive`,
+        description: `Technical exploration of ${query} concepts, algorithms, and practical implementations with examples.`,
+        difficulty: 'advanced',
+        estimatedTime: '3-5 hours',
+        source: 'Technical Learning'
+      });
+    }
+
+    // General learning topics
+    suggestions.push({
+      title: `${query} - Fundamentals & Applications`,
+      description: `Essential knowledge about ${query} covering core concepts, practical applications, and step-by-step learning approach.`,
+      difficulty: 'intermediate',
+      estimatedTime: '1-3 hours',
+      source: 'General Learning'
+    });
+
+    return suggestions;
+  }
+
+  // Summarize completed video with enhanced context
+  async summarizeCompletedVideo(video, mode = 'insight') {
+    const videoContent = {
+      id: `completed_video_${video.videoId}_${Date.now()}`,
+      title: video.title,
+      description: `Video Notes: ${video.notes}`,
+      type: 'completed_video',
+      videoId: video.videoId,
+      videoUrl: video.videoUrl,
+      tags: video.title.split(' ').filter(word => word.length > 2),
+      difficulty: 'intermediate',
+      priority: 9,
+      source: 'Completed Video',
+      channelTitle: 'Video Learning'
+    };
+
+    return await this.summarizeContent(videoContent, mode);
+  }
 
   // Fallback summary generation (rule-based)
   async generateFallbackSummary(textContent, originalContent, mode) {
@@ -203,82 +489,86 @@ The speaker discusses key concepts, provides examples, and shares insights based
     
     switch (mode) {
       case 'tldr':
-        summary = `**What is ${title}?**
-${title} is a topic in ${tags} that focuses on practical applications and core concepts. ${keySentences || description}
+        summary = `**What you can DO with ${title}:**
+${title} enables you to achieve practical results in ${tags}. You can immediately apply these concepts to improve your outcomes. ${keySentences || description}
 
-**Why it matters:**
-• Essential knowledge for ${tags}
-• Practical applications in real-world scenarios
-• Foundation for advanced learning
+**Why you NEED this:**
+• Directly improves your results in ${tags}
+• Provides competitive advantage in real-world applications
+• Unlocks new opportunities and capabilities
 
-**How to start:** Begin with understanding the basic concepts
-**Quick wins:** Apply one concept immediately to see results
-**Difficulty:** ${originalContent.difficulty || 'Intermediate'} - suitable for focused learning`;
+**Start TODAY:** Identify one area where you can apply ${title} principles immediately
+**Quick wins:** 
+• Implement the basic framework this week
+• See measurable improvements within 7-14 days
+• Build momentum for advanced applications
+
+**Implementation difficulty:** ${originalContent.difficulty || 'Intermediate'} - achievable with focused action`;
         break;
 
       case 'insight':
-        summary = `**Understanding ${title}:**
-${title} is an important concept in ${tags}. ${keySentences || description}
+        summary = `**Practical Impact of ${title}:**
+${title} transforms how you approach ${tags}, delivering measurable results. ${keySentences || description}
 
-**Key Concepts Explained:**
-• **Core Principle**: The fundamental idea behind ${title}
-• **Practical Application**: How this applies in real situations
-• **Mental Model**: Think of it as a framework for ${tags}
-• **Common Use Cases**: Where you'll encounter this most often
+**Action Framework:**
+• **Implementation Strategy**: Systematic approach to apply ${title} in your context
+• **Practical Application**: Specific ways to use this in real situations with examples
+• **Mental Model**: Think of it as your go-to system for ${tags} challenges
+• **Success Patterns**: Proven methods that consistently deliver results
 
-**Why This Matters:**
-This knowledge helps you understand ${tags} more deeply and provides practical tools for implementation.
+**Real Implementation:**
+This approach gives you practical tools to improve your ${tags} outcomes and solve real problems.
 
-**Getting Started:**
-1. Learn the basic definitions and concepts
-2. Find simple examples to practice with
-3. Apply to a small project or scenario
-4. Build complexity gradually
+**Getting Results:**
+1. Identify your specific use case and goals
+2. Apply the core framework to a small test scenario
+3. Measure results and refine your approach
+4. Scale successful patterns to larger applications
 
-**Next Level:** Explore advanced applications and connect with related topics in ${tags}
-**Time Investment:** 30-60 minutes for solid understanding`;
+**Scaling Up:** Build systematic processes and advanced techniques for ${tags}
+**Expected ROI:** Significant improvement in ${tags} effectiveness within 2-4 weeks`;
         break;
 
       case 'detailed':
-        summary = `**Comprehensive Guide to ${title}:**
+        summary = `**Complete Implementation System for ${title}:**
 
-**What You'll Learn:**
-${title} is a comprehensive topic within ${tags} that encompasses both theoretical understanding and practical application. ${keySentences || description}
+**Strategic Impact:**
+${title} provides a comprehensive system for achieving superior results in ${tags}. This implementation guide delivers measurable outcomes. ${keySentences || description}
 
-**Fundamental Concepts:**
-• **Definition**: Clear explanation of what ${title} means
-• **Core Principles**: The underlying rules and frameworks
-• **Key Components**: Breaking down the main elements
-• **Relationships**: How this connects to other concepts in ${tags}
+**Implementation Framework:**
+• **Strategic Foundation**: Core system architecture for ${title} implementation
+• **Execution Methods**: Proven processes and methodologies that deliver results
+• **Success Patterns**: Key components that drive consistent outcomes
+• **Integration Points**: How this connects with your existing ${tags} systems
 
-**Practical Framework:**
-1. **Foundation Building**: Start with basic concepts and terminology
-2. **Skill Development**: Practice with simple examples and exercises
-3. **Application**: Use in real-world scenarios and projects
-4. **Mastery**: Develop advanced understanding and teach others
+**90-Day Implementation Roadmap:**
+1. **Days 1-30**: Foundation setup and initial implementation
+2. **Days 31-60**: Optimization and scaling successful patterns
+3. **Days 61-90**: Advanced applications and system refinement
+4. **Ongoing**: Continuous improvement and mastery development
 
 **Real-World Applications:**
-• Professional settings where this knowledge is valuable
-• Personal projects that benefit from this understanding
-• Problem-solving scenarios where this applies
-• Creative applications and innovations
+• Professional implementation with specific ROI targets
+• Personal projects with measurable improvement goals
+• Problem-solving systems for complex ${tags} challenges
+• Innovation frameworks for breakthrough results
 
-**Learning Path:**
-• **Beginner**: Focus on definitions and basic examples
-• **Intermediate**: Practice application and explore variations
-• **Advanced**: Master complex scenarios and teach others
+**Optimization Strategy:**
+• **Beginner**: Focus on core implementation and quick wins
+• **Intermediate**: Scale successful patterns and optimize performance
+• **Advanced**: Develop custom solutions and mentor others
 
-**Tools and Resources:**
-• Books and articles on ${tags}
-• Online courses and tutorials
-• Practice platforms and communities
-• Real-world projects to apply knowledge
+**Complete Toolkit:**
+• Implementation templates and checklists
+• Measurement systems and success metrics
+• Troubleshooting guides and common solutions
+• Community resources and expert networks
 
-**Success Indicators:**
-• Can explain the concept clearly to others
-• Successfully apply in practical situations
-• Recognize when and how to use this knowledge
-• Connect with related concepts confidently`;
+**Success Metrics:**
+• Achieve specific, measurable improvements in ${tags}
+• Implement systematic processes that scale
+• Develop expertise that creates competitive advantage
+• Build sustainable systems for long-term success`;
         break;
 
       default:
@@ -296,90 +586,94 @@ ${title} is a comprehensive topic within ${tags} that encompasses both theoretic
     
     switch (mode) {
       case 'tldr':
-        summary = `**What is ${topic}?**
-${topic} is an important subject that offers practical knowledge and skills.${contextInfo}
+        summary = `**What you can ACHIEVE with ${topic}:**
+${topic} enables you to gain practical capabilities and deliver real results.${contextInfo}
 
-**Why it matters:**
-• Provides valuable skills and understanding
-• Has practical applications in various scenarios
-• Forms foundation for further learning
+**Why you NEED this:**
+• Directly improves your performance and outcomes
+• Provides competitive advantage in real applications
+• Unlocks new opportunities and capabilities
 
-**How to start:** Begin with basic concepts and definitions
-**Quick wins:** Learn one key principle and apply it immediately
-**Difficulty:** Beginner to Intermediate - accessible with focused effort`;
+**Start TODAY:** Identify one specific area where you can apply ${topic} immediately
+**Quick wins:** 
+• Implement basic principles this week
+• See measurable progress within 7-14 days
+• Build foundation for advanced applications
+
+**Implementation difficulty:** Beginner to Intermediate - achievable with focused action`;
         break;
 
       case 'insight':
-        summary = `**Understanding ${topic}:**
-${topic} is a valuable area of knowledge that combines theoretical understanding with practical application.${contextInfo}
+        summary = `**Practical Mastery of ${topic}:**
+${topic} provides a systematic approach to achieving superior results through proven methods and practical application.${contextInfo}
 
-**Key Concepts to Learn:**
-• **Fundamentals**: Core principles and basic definitions
-• **Applications**: How this knowledge is used in practice
-• **Benefits**: Why learning this topic is valuable
-• **Connections**: How it relates to other areas of knowledge
+**Action Framework:**
+• **Implementation Strategy**: Systematic approach to apply ${topic} effectively
+• **Practical Methods**: Specific techniques you can use immediately
+• **Success Patterns**: Proven approaches that consistently deliver results
+• **Real Applications**: How to use this in your specific context
 
-**Why This Matters:**
-Learning about ${topic} provides you with practical skills and deeper understanding that can be applied in various contexts.
+**Why This Transforms Results:**
+Mastering ${topic} gives you practical tools and systematic approaches that create measurable improvements in your outcomes.
 
-**Getting Started Guide:**
-1. Start with basic definitions and concepts
-2. Look for simple examples and case studies
-3. Practice with small exercises or projects
-4. Gradually build to more complex applications
+**Results-Driven Implementation:**
+1. Identify your specific goals and success metrics
+2. Apply core methods to a focused test case
+3. Measure results and optimize your approach
+4. Scale successful patterns to broader applications
 
-**Next Steps:** Explore advanced topics and find communities of practice
-**Time Investment:** 45-90 minutes for solid foundational understanding`;
+**Scaling Strategy:** Build systematic processes for consistent, repeatable success
+**Expected ROI:** Significant improvement in effectiveness within 2-4 weeks`;
         break;
 
       case 'detailed':
-        summary = `**Complete Learning Guide: ${topic}**
+        summary = `**Complete Implementation System: ${topic}**
 
-**Introduction:**
-${topic} is a comprehensive subject that offers both theoretical insights and practical applications.${contextInfo}
+**Strategic Impact:**
+${topic} provides a comprehensive system for achieving breakthrough results through systematic implementation and proven methodologies.${contextInfo}
 
-**What You'll Master:**
-• **Core Knowledge**: Fundamental concepts and principles
-• **Practical Skills**: How to apply this knowledge effectively
-• **Problem-Solving**: Using these concepts to solve real challenges
-• **Advanced Understanding**: Deeper insights and connections
+**What You'll Achieve:**
+• **Systematic Results**: Consistent, measurable outcomes through proven methods
+• **Competitive Advantage**: Superior performance through advanced implementation
+• **Scalable Systems**: Repeatable processes that grow with your needs
+• **Expert-Level Mastery**: Deep capability that creates lasting value
 
-**Learning Framework:**
-1. **Foundation Phase**
-   - Learn key terminology and definitions
-   - Understand basic principles and concepts
-   - Study simple examples and case studies
+**90-Day Implementation Framework:**
+1. **Foundation Phase (Days 1-30)**
+   - Establish core systems and initial implementation
+   - Achieve first measurable results and quick wins
+   - Build momentum through systematic application
 
-2. **Application Phase**
-   - Practice with hands-on exercises
-   - Apply knowledge to real scenarios
-   - Experiment with different approaches
+2. **Optimization Phase (Days 31-60)**
+   - Scale successful patterns and refine processes
+   - Implement advanced techniques for superior results
+   - Develop custom solutions for specific challenges
 
-3. **Mastery Phase**
-   - Tackle complex challenges and projects
-   - Develop your own insights and methods
-   - Share knowledge and teach others
+3. **Mastery Phase (Days 61-90)**
+   - Achieve expert-level implementation and results
+   - Create innovative applications and breakthrough solutions
+   - Build systems for teaching and mentoring others
 
-**Practical Applications:**
-• Professional development and career advancement
-• Personal projects and creative endeavors
-• Problem-solving in various contexts
-• Building expertise in related areas
+**Real-World Implementation:**
+• Professional applications with specific ROI targets
+• Personal transformation with measurable outcomes
+• Problem-solving systems for complex challenges
+• Innovation frameworks for breakthrough results
 
-**Learning Resources:**
-• **Books**: Look for comprehensive guides and textbooks
-• **Online Courses**: Structured learning with exercises
-• **Communities**: Forums and groups for discussion
-• **Practice**: Real-world projects and applications
+**Complete Success Toolkit:**
+• **Implementation Guides**: Step-by-step processes and checklists
+• **Measurement Systems**: Specific metrics and tracking methods
+• **Optimization Tools**: Advanced techniques and troubleshooting guides
+• **Community Resources**: Expert networks and ongoing support
 
-**Success Milestones:**
-• Can explain key concepts clearly
-• Successfully apply knowledge in practice
-• Solve problems using these principles
-• Help others learn and understand the topic
+**Success Metrics:**
+• Achieve specific, measurable improvements in target areas
+• Implement systematic processes that deliver consistent results
+• Develop expertise that creates competitive advantage
+• Build sustainable systems for long-term success and growth
 
-**Advanced Exploration:**
-Once you master the basics, explore specialized areas, advanced techniques, and connections to other fields of knowledge.`;
+**Advanced Mastery Path:**
+Develop specialized expertise, create innovative applications, and build systems that scale your impact and results.`;
         break;
 
       default:
@@ -395,60 +689,60 @@ Once you master the basics, explore specialized areas, advanced techniques, and 
     const topic = originalContent.title;
     
     const basePrompt = isCustomTopic 
-      ? `You are an expert educator. Create a comprehensive, explanatory ${mode} summary about "${topic}". 
+      ? `You are a practical learning coach. Create an actionable ${mode} guide about "${topic}". 
       
 User Context: ${originalContent.description || 'General learning interest'}
 
-Your task is to EXPLAIN and TEACH about this topic, not just summarize existing content. Provide:`
-      : `Analyze this content and create an explanatory ${mode} summary:
+Focus on PRACTICAL APPLICATION and ACTIONABLE INSIGHTS, not just theory. Make it immediately useful. Provide:`
+      : `Analyze this content and create a practical, actionable ${mode} guide:
 
 Content: ${textContent}
 
-Focus on explaining concepts clearly and providing educational value. Please provide:`;
+Focus on practical application, real-world implementation, and actionable steps. Make it immediately useful. Please provide:`;
 
     switch (mode) {
       case 'tldr':
         return `${basePrompt}
 
-1. **What it is**: Clear definition/explanation in 1-2 sentences
-2. **Why it matters**: Key benefits and importance (3 bullet points)
-3. **How to start**: One concrete first step
-4. **Quick wins**: 2-3 immediate applications
-5. **Difficulty level**: Beginner/Intermediate/Advanced with brief reasoning
+1. **What you can DO with it**: Practical applications and outcomes (not just definition)
+2. **Why you NEED this**: Real benefits and impact on your goals (3 bullet points)
+3. **Start TODAY**: One specific action you can take right now
+4. **Quick wins**: 2-3 immediate results you can achieve this week
+5. **Implementation difficulty**: How hard is it to get started and see results
 
-Make it educational and actionable. Explain concepts clearly for someone new to the topic.`;
+Make it action-oriented and immediately applicable. Focus on what the user can DO, not just what it IS.`;
 
       case 'insight':
         return `${basePrompt}
 
-1. **Core Explanation**: What this topic is and why it's important (2-3 sentences)
-2. **Key Concepts**: 4-5 fundamental ideas explained clearly with examples
-3. **Mental Models**: Frameworks or ways of thinking about this topic
-4. **Practical Applications**: Real-world uses and scenarios (with examples)
-5. **Common Misconceptions**: What people often get wrong and the correct understanding
-6. **Getting Started**: Step-by-step approach for beginners
-7. **Next Level**: How to advance from basic to intermediate understanding
-8. **Resources**: Types of materials to explore further
+1. **Practical Impact**: What this enables you to achieve and how it changes your results
+2. **Action Framework**: 4-5 specific strategies you can implement with concrete examples
+3. **Mental Models**: Practical thinking frameworks you can use immediately
+4. **Real Implementation**: Step-by-step process with actual examples and use cases
+5. **Common Pitfalls**: What typically goes wrong and how to avoid these mistakes
+6. **Getting Results**: Proven approach to see results quickly
+7. **Scaling Up**: How to go from basic implementation to advanced results
+8. **Tools & Systems**: Specific resources and methods to implement this effectively
 
-Focus on EXPLAINING and TEACHING. Use examples and analogies to make concepts clear.`;
+Focus on PRACTICAL APPLICATION and REAL RESULTS. Provide actionable strategies, not just explanations.`;
 
       case 'detailed':
         return `${basePrompt}
 
-1. **Comprehensive Explanation**: Thorough overview of what this topic encompasses
-2. **Fundamental Concepts**: Break down core principles with detailed explanations and examples
-3. **Historical Context**: How this topic developed and why it's relevant today
-4. **Detailed Framework**: Step-by-step processes, methodologies, or approaches
-5. **Real-World Examples**: Multiple case studies and practical applications
-6. **Common Challenges**: Problems people face and detailed solutions
-7. **Skill Development Path**: Progressive learning roadmap from beginner to expert
-8. **Tools and Resources**: Specific recommendations for learning and implementation
-9. **Advanced Concepts**: Deeper topics for continued growth
-10. **Practical Exercises**: Specific activities to build understanding
-11. **Success Metrics**: How to measure progress and mastery
-12. **Community and Support**: Where to find help and connect with others
+1. **Complete Implementation Guide**: Full system for applying this in your life/work
+2. **Strategic Framework**: Detailed methodology with step-by-step processes and decision trees
+3. **Proven Case Studies**: Multiple real examples with specific results and outcomes
+4. **Implementation Roadmap**: 30-60-90 day plan with milestones and checkpoints
+5. **Advanced Strategies**: High-impact techniques for maximum results
+6. **Problem-Solving Toolkit**: Common challenges with specific solutions and workarounds
+7. **Optimization Methods**: How to improve results and scale your implementation
+8. **Tools & Systems**: Complete toolkit with specific recommendations and setup guides
+9. **Measurement & Tracking**: Exact metrics to track progress and ROI
+10. **Troubleshooting Guide**: What to do when things don't work as expected
+11. **Advanced Applications**: Next-level strategies for experienced practitioners
+12. **Support Systems**: Communities, resources, and ongoing development paths
 
-Be thorough, educational, and practical. Explain everything as if teaching someone who wants to truly understand and apply this knowledge.`;
+Focus on COMPLETE IMPLEMENTATION. Provide everything needed to go from zero to expert results.`;
 
       default:
         return `${basePrompt}
@@ -647,6 +941,17 @@ A balanced, educational summary that explains key concepts clearly with practica
     }
 
     return results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  // Delete summary
+  deleteSummary(summaryId) {
+    const summaries = this.getSavedSummaries();
+    if (summaries[summaryId]) {
+      delete summaries[summaryId];
+      localStorage.setItem('prodmind_summaries', JSON.stringify(summaries));
+      return true;
+    }
+    return false;
   }
 }
 

@@ -65,6 +65,54 @@ export const useSummarizer = () => {
     return !!getSummary(contentId);
   };
 
+  // Search topics using AI/Hugging Face
+  const searchTopics = async (query) => {
+    try {
+      return await summarizerService.searchTopics(query);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error searching topics:', err);
+      return [];
+    }
+  };
+
+  // Summarize completed video
+  const summarizeCompletedVideo = async (video, mode = 'insight') => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const summary = await summarizerService.summarizeCompletedVideo(video, mode);
+      setSummaries(prev => ({
+        ...prev,
+        [`video_${video.videoId}`]: summary
+      }));
+      return summary;
+    } catch (err) {
+      setError(err.message);
+      console.error('Error summarizing completed video:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete summary
+  const deleteSummary = async (summaryId) => {
+    try {
+      await summarizerService.deleteSummary(summaryId);
+      setSummaries(prev => {
+        const updated = { ...prev };
+        delete updated[summaryId];
+        return updated;
+      });
+    } catch (err) {
+      setError(err.message);
+      console.error('Error deleting summary:', err);
+      throw err;
+    }
+  };
+
   // Get summary statistics
   const getSummaryStats = () => {
     const allSummaries = Object.values(summaries);
@@ -121,6 +169,9 @@ export const useSummarizer = () => {
     addNotes,
     getAllSummaries,
     hasSummary,
-    getSummaryStats
+    getSummaryStats,
+    searchTopics,
+    summarizeCompletedVideo,
+    deleteSummary
   };
 };

@@ -1,7 +1,6 @@
 // Individual summary card component
 import { useState } from 'react';
 import { 
-  BookOpen, 
   Clock, 
   Star, 
   Edit3, 
@@ -12,15 +11,20 @@ import {
   Brain,
   ExternalLink,
   Copy,
-  Check
+  Check,
+  Trash2,
+  AlertTriangle,
+  Play
 } from 'lucide-react';
+import { generateVideoPlayerUrl } from '../utils/videoUtils';
 
-const SummaryCard = ({ summary, onUpdateSummary, onRate, onAddNotes }) => {
+const SummaryCard = ({ summary, onUpdateSummary, onRate, onAddNotes, onDelete }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notes, setNotes] = useState(summary.notes || '');
   const [rating, setRating] = useState(summary.rating || 0);
   const [copied, setCopied] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const getModeColor = (mode) => {
     switch (mode) {
@@ -58,6 +62,60 @@ const SummaryCard = ({ summary, onUpdateSummary, onRate, onAddNotes }) => {
     } catch (err) {
       console.error('Failed to copy:', err);
     }
+  };
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(summary.contentId || summary.id);
+    }
+    setShowDeleteConfirm(false);
+  };
+
+  const getViewOriginalLink = () => {
+    const url = summary.originalContent.url;
+    
+    // Check if this is a video-related summary
+    const isCompletedVideo = summary.type === 'completed_video' || 
+                            summary.originalContent.source === 'Completed Video' ||
+                            summary.originalContent.source === 'Video Notes';
+    
+    const isYouTubeVideo = url && (url.includes('youtube.com/watch') || url.includes('youtu.be/'));
+    
+    // Check if summary has video information stored
+    const hasVideoId = summary.videoId || summary.originalContent.videoId;
+    const hasVideoUrl = summary.videoUrl || summary.originalContent.videoUrl;
+    
+    if (isCompletedVideo || isYouTubeVideo || hasVideoId || hasVideoUrl) {
+      // Use our internal video player for all video content
+      const videoUrl = hasVideoUrl || url || (hasVideoId ? `https://youtube.com/watch?v=${hasVideoId}` : null);
+      
+      if (videoUrl) {
+        const videoData = {
+          url: videoUrl,
+          title: summary.originalContent.title,
+          channelTitle: summary.originalContent.source || 'Unknown Channel'
+        };
+        
+        return {
+          href: generateVideoPlayerUrl(videoData),
+          target: '_self',
+          icon: Play,
+          title: 'Watch in Video Player'
+        };
+      }
+    }
+    
+    if (url) {
+      // For non-video content, use external link
+      return {
+        href: url,
+        target: '_blank',
+        icon: ExternalLink,
+        title: 'View original'
+      };
+    }
+    
+    return null;
   };
 
   const formatDate = (dateString) => {
@@ -104,17 +162,31 @@ const SummaryCard = ({ summary, onUpdateSummary, onRate, onAddNotes }) => {
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>
           
-          {summary.originalContent.url && (
-            <a
-              href={summary.originalContent.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
-              title="View original"
-            >
-              <ExternalLink size={16} />
-            </a>
-          )}
+          {summary.originalContent.url && (() => {
+            const linkData = getViewOriginalLink();
+            if (!linkData) return null;
+            
+            const IconComponent = linkData.icon;
+            return (
+              <a
+                href={linkData.href}
+                target={linkData.target}
+                rel={linkData.target === '_blank' ? 'noopener noreferrer' : undefined}
+                className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
+                title={linkData.title}
+              >
+                <IconComponent size={16} />
+              </a>
+            );
+          })()}
+
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="p-2 text-gray-400 hover:text-red-400 rounded-lg hover:bg-gray-800 transition-colors"
+            title="Delete summary"
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       </div>
 
@@ -286,6 +358,38 @@ const SummaryCard = ({ summary, onUpdateSummary, onRate, onAddNotes }) => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-red-800 rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <AlertTriangle className="h-6 w-6 text-red-400" />
+              <h3 className="text-lg font-semibold text-white">Delete Summary</h3>
+            </div>
+            
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this summary? This action cannot be undone.
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={handleDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2"
+              >
+                <Trash2 size={16} />
+                Delete
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
