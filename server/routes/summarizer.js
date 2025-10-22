@@ -3,51 +3,59 @@ import fetch from 'node-fetch';
 import Summary from '../models/Summary.js';
 import Content from '../models/Content.js';
 import aiService from '../services/aiService.js';
+import { authenticateToken } from './auth.js';
 
 const router = express.Router();
+
+// Apply authentication to all routes
+router.use(authenticateToken);
 
 // Generate summary
 router.post('/generate', async (req, res) => {
   try {
-    const { contentId, mode = 'insight', customPrompt } = req.body;
-    const userId = req.headers['x-user-id'] || 'default';
+    const { 
+      contentId, 
+      mode = 'insight', 
+      customPrompt,
+      content: summaryContent,
+      keyInsights,
+      actionableItems,
+      mentalModels,
+      relatedTopics,
+      difficulty,
+      timeToRead,
+      originalContent,
+      tags
+    } = req.body;
+    const userId = req.user._id;
 
     if (!contentId) {
       return res.status(400).json({ error: 'Content ID is required' });
     }
 
-    // Get content details
-    const content = await Content.findOne({ _id: contentId, userId });
-    if (!content) {
-      return res.status(404).json({ error: 'Content not found' });
-    }
-
     // Check if summary already exists
-    const existingSummary = await Summary.findOne({ contentId, mode, userId });
+    const existingSummary = await Summary.findOne({ 
+      'originalContent.title': originalContent?.title,
+      mode, 
+      userId 
+    });
     if (existingSummary) {
       return res.json(existingSummary);
     }
-
-    // Generate AI summary
-    const summaryContent = await generateAISummary(content, mode, customPrompt);
     
     // Create summary document
     const summary = new Summary({
-      contentId,
+      contentId: contentId,
       mode,
-      content: summaryContent.content,
-      keyInsights: summaryContent.keyInsights,
-      actionableItems: summaryContent.actionableItems,
-      mentalModels: summaryContent.mentalModels,
-      relatedTopics: summaryContent.relatedTopics,
-      difficulty: summaryContent.difficulty,
-      timeToRead: summaryContent.timeToRead,
-      originalContent: {
-        title: content.title,
-        source: content.source,
-        url: content.url
-      },
-      tags: summaryContent.tags,
+      content: summaryContent,
+      keyInsights: keyInsights || [],
+      actionableItems: actionableItems || [],
+      mentalModels: mentalModels || [],
+      relatedTopics: relatedTopics || [],
+      difficulty: difficulty || 'intermediate',
+      timeToRead: timeToRead || 5,
+      originalContent: originalContent || {},
+      tags: tags || [],
       userId
     });
 
@@ -62,7 +70,7 @@ router.post('/generate', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 10, mode, difficulty, tags } = req.query;
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
 
     const filter = { userId };
     if (mode) filter.mode = mode;
@@ -91,7 +99,7 @@ router.get('/', async (req, res) => {
 // Get summary by ID
 router.get('/:id', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const summary = await Summary.findOne({ _id: req.params.id, userId })
       .populate('contentId', 'title url source');
 
@@ -108,7 +116,7 @@ router.get('/:id', async (req, res) => {
 // Update summary (rating, notes)
 router.put('/:id', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const { rating, notes } = req.body;
 
     const summary = await Summary.findOneAndUpdate(
@@ -130,7 +138,7 @@ router.put('/:id', async (req, res) => {
 // Delete summary
 router.delete('/:id', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const summary = await Summary.findOneAndDelete({ _id: req.params.id, userId });
 
     if (!summary) {

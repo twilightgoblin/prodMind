@@ -20,8 +20,9 @@ const videoNotesSchema = new mongoose.Schema({
     maxlength: 5000 // Limit notes to 5000 characters
   },
   userId: {
-    type: String,
-    default: 'default_user', // For now, using default user
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
     index: true
   },
   createdAt: {

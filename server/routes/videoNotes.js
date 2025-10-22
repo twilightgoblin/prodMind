@@ -1,8 +1,12 @@
 import express from 'express';
 import VideoNotes from '../models/VideoNotes.js';
+import { authenticateToken } from './auth.js';
 import { logger } from '../middleware/logger.js';
 
 const router = express.Router();
+
+// Apply authentication to all routes
+router.use(authenticateToken);
 
 // Save or update video notes
 router.post('/', async (req, res) => {
@@ -22,7 +26,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const userId = 'default_user'; // For now, using default user
+    const userId = req.user._id;
 
     // Check if notes already exist for this video and user
     let existingNotes = await VideoNotes.findOne({ videoId, userId });
@@ -74,7 +78,7 @@ router.post('/', async (req, res) => {
 router.get('/:videoId', async (req, res) => {
   try {
     const { videoId } = req.params;
-    const userId = 'default_user'; // For now, using default user
+    const userId = req.user._id;
 
     const notes = await VideoNotes.findOne({ videoId, userId });
 
@@ -100,7 +104,7 @@ router.get('/:videoId', async (req, res) => {
 // Get all notes for a user
 router.get('/', async (req, res) => {
   try {
-    const userId = 'default_user'; // For now, using default user
+    const userId = req.user._id;
     const { page = 1, limit = 20, search } = req.query;
 
     const query = { userId };
@@ -149,7 +153,7 @@ router.get('/', async (req, res) => {
 router.delete('/:videoId', async (req, res) => {
   try {
     const { videoId } = req.params;
-    const userId = 'default_user'; // For now, using default user
+    const userId = req.user._id;
 
     const deletedNotes = await VideoNotes.findOneAndDelete({ videoId, userId });
 

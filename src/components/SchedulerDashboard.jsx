@@ -1,13 +1,15 @@
 // Smart Scheduler Dashboard Component
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, TrendingUp, Settings, Play, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, TrendingUp, Settings, Play, CheckCircle, AlertCircle, LogIn } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useScheduler } from '../hooks/useScheduler';
 import { useContent } from '../hooks/useContent';
 import { generateVideoPlayerUrl } from '../utils/videoUtils';
 
 const SchedulerDashboard = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState('today');
   const [showSettings, setShowSettings] = useState(false);
 
@@ -252,6 +254,45 @@ const SchedulerDashboard = () => {
       </div>
     </div>
   );
+
+  // Show sign-in prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center py-12">
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-8">
+            <LogIn size={48} className="text-blue-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-4">Sign In Required</h2>
+            <p className="text-gray-300 mb-6">
+              You need to sign in to access your smart scheduler and view your scheduled content.
+            </p>
+            <div className="space-y-4">
+              <Link
+                to="/signin"
+                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Sign In to Your Account
+              </Link>
+              <p className="text-sm text-gray-400">
+                Don't have an account?{' '}
+                <Link to="/signup" className="text-blue-400 hover:text-blue-300">
+                  Sign up here
+                </Link>
+              </p>
+              <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <h3 className="text-sm font-medium text-white mb-2">Test Account</h3>
+                <p className="text-xs text-gray-400 mb-2">You can use these credentials to test the scheduler:</p>
+                <div className="text-xs text-gray-300 space-y-1">
+                  <div><strong>Email:</strong> test@example.com</div>
+                  <div><strong>Password:</strong> TestPass123!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">

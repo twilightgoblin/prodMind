@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Play, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { generateVideoPlayerUrl } from '../utils/videoUtils';
+import apiClient from '../utils/api';
 
 const TodayWatchWidget = ({ onNavigateToScheduler }) => {
   const [todaysContent, setTodaysContent] = useState([]);
@@ -15,14 +16,9 @@ const TodayWatchWidget = ({ onNavigateToScheduler }) => {
     setLoading(true);
     try {
       const today = new Date().toISOString().split('T')[0];
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/scheduler/date/${today}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        const scheduledToday = data.scheduledContent.filter(item => item.status === 'scheduled');
-        setTodaysContent(scheduledToday);
-      }
+      const data = await apiClient.getScheduledContent({ date: today });
+      const scheduledToday = data.data?.filter(item => item.status === 'scheduled') || [];
+      setTodaysContent(scheduledToday);
     } catch (error) {
       console.error('Error fetching today\'s content:', error);
     } finally {

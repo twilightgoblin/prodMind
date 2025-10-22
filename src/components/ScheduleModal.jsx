@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Calendar, Clock, X, Save, AlertCircle } from 'lucide-react';
+import apiClient from '../utils/api';
 
 const ScheduleModal = ({ isOpen, onClose, content, onSchedule }) => {
   const [formData, setFormData] = useState({
@@ -31,24 +32,10 @@ const ScheduleModal = ({ isOpen, onClose, content, onSchedule }) => {
         ...formData
       };
 
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/scheduler/schedule`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(scheduleData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to schedule content');
-      }
-
-      const scheduledContent = await response.json();
+      const scheduledContent = await apiClient.scheduleContent(scheduleData);
       onSchedule(scheduledContent);
       onClose();
-      
+
       // Reset form
       setFormData({
         scheduledDate: new Date().toISOString().split('T')[0],
@@ -76,11 +63,11 @@ const ScheduleModal = ({ isOpen, onClose, content, onSchedule }) => {
     if (!duration) return null;
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return duration;
-    
+
     const hours = parseInt(match[1]) || 0;
     const minutes = parseInt(match[2]) || 0;
     const seconds = parseInt(match[3]) || 0;
-    
+
     if (hours > 0) return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
@@ -94,10 +81,10 @@ const ScheduleModal = ({ isOpen, onClose, content, onSchedule }) => {
     for (let hour = 6; hour < 24; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        const displayTime = new Date(`2000-01-01T${timeString}`).toLocaleTimeString([], { 
-          hour: 'numeric', 
+        const displayTime = new Date(`2000-01-01T${timeString}`).toLocaleTimeString([], {
+          hour: 'numeric',
           minute: '2-digit',
-          hour12: true 
+          hour12: true
         });
         slots.push({ value: timeString, label: displayTime });
       }
@@ -127,8 +114,8 @@ const ScheduleModal = ({ isOpen, onClose, content, onSchedule }) => {
         {/* Content Preview */}
         <div className="p-4 border-b border-gray-800">
           <div className="flex gap-3">
-            <img 
-              src={content.thumbnail} 
+            <img
+              src={content.thumbnail}
               alt={content.title}
               className="w-16 h-12 object-cover rounded flex-shrink-0"
             />

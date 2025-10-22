@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Play, CheckCircle, X, Filter, BarChart3, Plus } from 'lucide-react';
+import { Calendar, Clock, Play, CheckCircle, X, Filter, BarChart3, Plus, LogIn } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import CalendarIntegration from './CalendarIntegration';
 import { generateVideoPlayerUrl } from '../utils/videoUtils';
+import apiClient from '../utils/api';
 
 const SmartScheduler = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [scheduledContent, setScheduledContent] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -21,32 +24,30 @@ const SmartScheduler = () => {
   const fetchScheduledContent = async () => {
     setLoading(true);
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      let url = `${apiBaseUrl}/scheduler`;
-      const params = new URLSearchParams();
+      const params = {};
       
       if (filter !== 'all') {
-        params.append('status', filter);
+        params.status = filter;
       }
       
       if (selectedDate) {
-        params.append('startDate', selectedDate);
+        params.startDate = selectedDate;
         const endDate = new Date(selectedDate);
         endDate.setDate(endDate.getDate() + 1);
-        params.append('endDate', endDate.toISOString().split('T')[0]);
+        params.endDate = endDate.toISOString().split('T')[0];
       }
 
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setScheduledContent(data.scheduledContent || []);
-      }
+      const data = await apiClient.getScheduledContent(params);
+      setScheduledContent(data.scheduledContent || []);
     } catch (error) {
       console.error('Error fetching scheduled content:', error);
+      
+      // Handle authentication errors
+      if (error.message.includes('Authentication required') || error.message.includes('Invalid token')) {
+        // Clear any invalid tokens
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+      }
     } finally {
       setLoading(false);
     }
@@ -54,12 +55,8 @@ const SmartScheduler = () => {
 
   const fetchAnalytics = async () => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/scheduler/analytics`);
-      if (response.ok) {
-        const data = await response.json();
-        setAnalytics(data);
-      }
+      const data = await apiClient.getScheduleAnalytics();
+      setAnalytics(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
     }
@@ -67,19 +64,12 @@ const SmartScheduler = () => {
 
   const updateContentStatus = async (id, status, additionalData = {}) => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const endpoint = status === 'completed' ? 'complete' : 'cancel';
-      const response = await fetch(`${apiBaseUrl}/scheduler/${id}/${endpoint}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(additionalData)
-      });
-
-      if (response.ok) {
-        fetchScheduledContent();
+      if (status === 'completed') {
+        await apiClient.completeScheduledContent(id, additionalData);
+      } else {
+        await apiClient.cancelScheduledContent(id);
       }
+      fetchScheduledContent();
     } catch (error) {
       console.error('Error updating content status:', error);
     }
@@ -89,14 +79,8 @@ const SmartScheduler = () => {
     if (!confirm('Are you sure you want to delete this scheduled content?')) return;
     
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/scheduler/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        fetchScheduledContent();
-      }
+      await apiClient.deleteScheduledContent(id);
+      fetchScheduledContent();
     } catch (error) {
       console.error('Error deleting scheduled content:', error);
     }
@@ -250,6 +234,47 @@ const SmartScheduler = () => {
       }
     });
   };
+
+  // Show sign-in prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#060010] text-white p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-8">
+              <LogIn size={48} className="text-blue-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-white mb-4">Sign In Required</h2>
+              <p className="text-gray-300 mb-6">
+                You need to sign in to access your smart scheduler and view your scheduled content.
+              </p>
+              <div className="space-y-4">
+                <Link
+                  to="/signin"
+                  className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Sign In to Your Account
+                </Link>
+                <p className="text-sm text-gray-400">
+                  Don't have an account?{' '}
+                  <Link to="/signup" className="text-blue-400 hover:text-blue-300">
+                    Sign up here
+                  </Link>
+                </p>
+                <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                  <h3 className="text-sm font-medium text-white mb-2">Test Account</h3>
+                  <p className="text-xs text-gray-400 mb-2">You can use these credentials to test the scheduler:</p>
+                  <div className="text-xs text-gray-300 space-y-1">
+                    <div><strong>Email:</strong> test@example.com</div>
+                    <div><strong>Password:</strong> TestPass123!</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#060010] text-white p-6">

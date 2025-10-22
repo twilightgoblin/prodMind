@@ -17,6 +17,7 @@ import {
 import { useSummarizer } from '../hooks/useSummarizer';
 import { useContent } from '../hooks/useContent';
 import SummaryCard from './SummaryCard';
+import apiClient from '../utils/api';
 
 const SummarizerDashboard = () => {
   const [activeTab, setActiveTab] = useState('summaries');
@@ -30,6 +31,7 @@ const SummarizerDashboard = () => {
   const [loadingVideos, setLoadingVideos] = useState(false);
   const [topicSearchResults, setTopicSearchResults] = useState([]);
   const [searchingTopics, setSearchingTopics] = useState(false);
+  const [allSummaries, setAllSummaries] = useState([]);
 
   const { content } = useContent();
   const {
@@ -46,19 +48,27 @@ const SummarizerDashboard = () => {
     deleteSummary
   } = useSummarizer();
 
-  // Fetch completed videos on component mount
+  // Fetch completed videos and summaries on component mount
   useEffect(() => {
     fetchCompletedVideos();
+    loadSummaries();
   }, []);
+
+  const loadSummaries = async () => {
+    try {
+      const summaries = await getAllSummaries();
+      setAllSummaries(summaries || []);
+    } catch (error) {
+      console.error('Error loading summaries:', error);
+      setAllSummaries([]);
+    }
+  };
 
   const fetchCompletedVideos = async () => {
     setLoadingVideos(true);
     try {
-      const response = await fetch('/api/video-notes');
-      if (response.ok) {
-        const data = await response.json();
-        setCompletedVideos(data.data || []);
-      }
+      const data = await apiClient.getAllVideoNotes();
+      setCompletedVideos(data.data || []);
     } catch (error) {
       console.error('Error fetching completed videos:', error);
     } finally {
@@ -84,7 +94,6 @@ const SummarizerDashboard = () => {
   };
 
   const stats = getSummaryStats();
-  const allSummaries = getAllSummaries();
 
   // Filter summaries based on search and filters
   const filteredSummaries = allSummaries.filter(summary => {
@@ -106,6 +115,7 @@ const SummarizerDashboard = () => {
     setSelectedContent(contentItem);
     setSummaryMode(mode);
     await summarizeContent(contentItem, mode);
+    await loadSummaries(); // Refresh summaries list
     setShowCreateModal(false);
     setSelectedContent(null);
   };
@@ -125,6 +135,7 @@ const SummarizerDashboard = () => {
     };
     
     await summarizeContent(customContent, mode);
+    await loadSummaries(); // Refresh summaries list
     setShowCreateModal(false);
     setCustomTopic('');
     setCustomDescription('');
@@ -156,6 +167,7 @@ const SummarizerDashboard = () => {
     };
     
     await summarizeContent(videoContent, mode);
+    await loadSummaries(); // Refresh summaries list
     // Auto-navigate to summaries tab after creation
     setActiveTab('summaries');
   };
@@ -174,6 +186,7 @@ const SummarizerDashboard = () => {
     };
     
     await summarizeContent(topicContent, 'insight');
+    await loadSummaries(); // Refresh summaries list
     // Auto-navigate to summaries tab after creation
     setActiveTab('summaries');
   };
@@ -192,6 +205,7 @@ const SummarizerDashboard = () => {
     };
     
     await summarizeContent(customContent, 'insight');
+    await loadSummaries(); // Refresh summaries list
     // Auto-navigate to summaries tab after creation
     setActiveTab('summaries');
   };

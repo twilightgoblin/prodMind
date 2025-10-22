@@ -1,5 +1,6 @@
 // Custom hook for scheduler management
 import { useState, useEffect } from 'react';
+import apiClient from '../utils/api';
 
 export const useScheduler = () => {
   const [schedule, setSchedule] = useState([]);
@@ -18,22 +19,8 @@ export const useScheduler = () => {
   const fetchScheduledContent = async (filters = {}) => {
     setLoading(true);
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      let url = `${apiBaseUrl}/scheduler`;
-      const params = new URLSearchParams();
-
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
-
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        const scheduledContent = data.scheduledContent || [];
+      const data = await apiClient.getScheduledContent(filters);
+      const scheduledContent = data.scheduledContent || [];
 
         // Transform API data to match existing component structure
         const transformedSchedule = scheduledContent.map(item => ({
@@ -65,6 +52,13 @@ export const useScheduler = () => {
       }
     } catch (error) {
       console.error('Error fetching scheduled content:', error);
+      
+      // Handle authentication errors
+      if (error.message.includes('Authentication required') || error.message.includes('Invalid token')) {
+        // Clear any invalid tokens
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+      }
     } finally {
       setLoading(false);
     }
@@ -86,23 +80,14 @@ export const useScheduler = () => {
   // Mark session as completed
   const completeSession = async (sessionId, focusScore = 8, notes = '') => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/scheduler/${sessionId}/complete`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          rating: focusScore,
-          feedback: notes,
-          actualDuration: 30 // Could be calculated based on actual time
-        })
+      await apiClient.completeScheduledContent(sessionId, {
+        rating: focusScore,
+        feedback: notes,
+        actualDuration: 30 // Could be calculated based on actual time
       });
 
-      if (response.ok) {
-        // Refresh the schedule
-        await fetchScheduledContent();
-      }
+      // Refresh the schedule
+      await fetchScheduledContent();
     } catch (error) {
       console.error('Error completing session:', error);
     }
@@ -114,22 +99,13 @@ export const useScheduler = () => {
       const newDate = newStartTime.toISOString().split('T')[0];
       const newTime = newStartTime.toTimeString().slice(0, 5);
 
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/scheduler/${sessionId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          scheduledDate: newDate,
-          scheduledTime: newTime
-        })
+      await apiClient.updateScheduledContent(sessionId, {
+        scheduledDate: newDate,
+        scheduledTime: newTime
       });
 
-      if (response.ok) {
-        // Refresh the schedule
-        await fetchScheduledContent();
-      }
+      // Refresh the schedule
+      await fetchScheduledContent();
     } catch (error) {
       console.error('Error rescheduling session:', error);
     }

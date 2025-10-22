@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar/Navbar';
 import Home from './pages/Home/Home';
 import FeaturesPage from './pages/Features/Features';
@@ -13,14 +14,18 @@ import Summarizer from './pages/Summarizer/Summarizer';
 import SmartScheduler from './components/SmartScheduler';
 import VideoPlayer from './pages/VideoPlayer/VideoPlayer';
 import VideoNotes from './pages/VideoNotes/VideoNotes';
+import SignIn from './pages/Auth/SignIn';
+import SignUp from './pages/Auth/SignUp';
+import AuthDemo from './pages/Auth/AuthDemo';
 import { Contact } from 'lucide-react';
 import Footer4Col from './components/Footer/Footer';
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Navbar />
-      <Routes>
+    <AuthProvider>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
         <Route path="/" element={
           <div style={{ width: '100%', margin: 0, padding: 0 }}>
             <Home />
@@ -46,8 +51,12 @@ const App = () => {
         } />
         <Route path="/video/:videoId" element={<VideoPlayer />} />
         <Route path="/notes" element={<VideoNotes />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/auth-demo" element={<AuthDemo />} />
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   );
 };
 

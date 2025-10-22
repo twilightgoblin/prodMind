@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import ScheduledContent from '../models/ScheduledContent.js';
+import { authenticateToken } from './auth.js';
 
 const router = express.Router();
 
@@ -17,8 +18,9 @@ const checkDBConnection = (req, res, next) => {
   next();
 };
 
-// Apply database check to all routes
+// Apply database check and authentication to all routes
 router.use(checkDBConnection);
+router.use(authenticateToken);
 
 // Get all scheduled content
 router.get('/', async (req, res) => {
@@ -31,7 +33,7 @@ router.get('/', async (req, res) => {
       endDate,
       priority 
     } = req.query;
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
 
     const filter = { userId };
     if (status) filter.status = status;
@@ -66,7 +68,7 @@ router.get('/', async (req, res) => {
 router.get('/date/:date', async (req, res) => {
   try {
     const { date } = req.params;
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
 
     const startDate = new Date(date);
     const endDate = new Date(date);
@@ -89,7 +91,7 @@ router.get('/date/:date', async (req, res) => {
 // Schedule new content
 router.post('/schedule', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const {
       contentId,
       title,
@@ -156,7 +158,7 @@ router.post('/schedule', async (req, res) => {
 // Update scheduled content
 router.put('/:id', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const { id } = req.params;
 
     const scheduledContent = await ScheduledContent.findOneAndUpdate(
@@ -178,7 +180,7 @@ router.put('/:id', async (req, res) => {
 // Mark content as completed
 router.patch('/:id/complete', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const { id } = req.params;
     const { actualDuration, rating, feedback } = req.body;
 
@@ -207,7 +209,7 @@ router.patch('/:id/complete', async (req, res) => {
 // Cancel scheduled content
 router.patch('/:id/cancel', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const { id } = req.params;
 
     const scheduledContent = await ScheduledContent.findOneAndUpdate(
@@ -229,7 +231,7 @@ router.patch('/:id/cancel', async (req, res) => {
 // Delete scheduled content
 router.delete('/:id', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const { id } = req.params;
 
     const scheduledContent = await ScheduledContent.findOneAndDelete({ 
@@ -250,7 +252,7 @@ router.delete('/:id', async (req, res) => {
 // Get schedule analytics
 router.get('/analytics', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] || 'default';
+    const userId = req.user._id;
     const { startDate, endDate } = req.query;
 
     const filter = { userId };

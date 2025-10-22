@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, easeInOut } from "framer-motion";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight, User, LogOut } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 // 📝 each navItem points to an id on the page or route
 const navItems = [
@@ -12,10 +13,12 @@ const navItems = [
 ];
 
 export default function Header2() {
+  const { isAuthenticated, user, signOut } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [activeId, setActiveId] = useState("home");
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,6 +75,12 @@ export default function Header2() {
     }
   };
 
+  const handleSignOut = () => {
+    signOut();
+    setShowUserMenu(false);
+    window.location.href = '/';
+  };
+
   return (
     <div>
       <motion.header
@@ -126,23 +135,64 @@ export default function Header2() {
 
             {/* Desktop buttons (right side) */}
             <motion.div className="hidden lg:flex items-center space-x-3" variants={itemVariants}>
-              <a
-                href="#login"
-                onClick={(e) => handleNavClick(e, "#login")}
-                className="text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors duration-200"
-              >
-                Sign In
-              </a>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <a
-                  href="#signup"
-                  onClick={(e) => handleNavClick(e, "#signup")}
-                  className="bg-white text-black hover:bg-gray-100 inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200"
-                >
-                  <span>Get Started</span>
-                  <ArrowRight className="h-4 w-4" />
-                </a>
-              </motion.div>
+              {isAuthenticated ? (
+                <div className="relative">
+                  <motion.button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-lg hover:bg-white/10"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                      <User className="h-4 w-4 text-white" />
+                    </div>
+                    <span>{user?.firstName || 'User'}</span>
+                  </motion.button>
+                  
+                  <AnimatePresence>
+                    {showUserMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-2"
+                      >
+                        <a
+                          href="/dashboard"
+                          className="block px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                        >
+                          Dashboard
+                        </a>
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Sign Out
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <>
+                  <a
+                    href="/signin"
+                    className="text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors duration-200"
+                  >
+                    Sign In
+                  </a>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <a
+                      href="/signup"
+                      className="bg-white hover:bg-gray-100 text-black inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200"
+                    >
+                      <span>Get Started</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </a>
+                  </motion.div>
+                </>
+              )}
             </motion.div>
 
             {/* Mobile hamburger */}
@@ -191,20 +241,43 @@ export default function Header2() {
                   ))}
                 </div>
                 <motion.div className="border-border space-y-3 border-t pt-6" variants={mobileItemVariants}>
-                  <a
-                    href="#login"
-                    onClick={(e) => handleNavClick(e, "#login")}
-                    className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
-                  >
-                    Sign In
-                  </a>
-                  <a
-                    href="#signup"
-                    onClick={(e) => handleNavClick(e, "#signup")}
-                    className="bg-white text-black hover:bg-gray-100 block w-full rounded-lg py-3 text-center font-medium transition-all duration-200"
-                  >
-                    Get Started
-                  </a>
+                  {isAuthenticated ? (
+                    <>
+                      <div className="flex items-center space-x-3 px-4 py-2">
+                        <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="text-white font-medium">{user?.firstName || 'User'}</span>
+                      </div>
+                      <a
+                        href="/dashboard"
+                        className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
+                      >
+                        Dashboard
+                      </a>
+                      <button
+                        onClick={handleSignOut}
+                        className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
+                      >
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <a
+                        href="/signin"
+                        className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
+                      >
+                        Sign In
+                      </a>
+                      <a
+                        href="/signup"
+                        className="bg-white hover:bg-gray-100 text-black block w-full rounded-lg py-3 text-center font-medium transition-all duration-200"
+                      >
+                        Get Started
+                      </a>
+                    </>
+                  )}
                 </motion.div>
               </div>
             </motion.div>

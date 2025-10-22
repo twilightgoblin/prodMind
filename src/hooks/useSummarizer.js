@@ -1,6 +1,7 @@
 // Custom hook for content summarization
 import { useState, useEffect } from 'react';
 import summarizerService from '../services/summarizerService';
+import apiClient from '../utils/api';
 
 export const useSummarizer = () => {
   const [summaries, setSummaries] = useState({});
@@ -13,12 +14,41 @@ export const useSummarizer = () => {
     setError(null);
     
     try {
-      const summary = await summarizerService.summarizeContent(content, mode, customPrompt);
-      setSummaries(prev => ({
-        ...prev,
-        [content.id]: summary
-      }));
-      return summary;
+      // Generate summary using the service (for AI processing)
+      const localSummary = await summarizerService.summarizeContent(content, mode, customPrompt);
+      
+      // Save to database via API
+      try {
+        const dbSummary = await apiClient.generateSummary({
+          contentId: content.id,
+          mode,
+          customPrompt,
+          content: localSummary.content,
+          keyInsights: localSummary.keyInsights,
+          actionableItems: localSummary.actionableItems,
+          mentalModels: localSummary.mentalModels,
+          relatedTopics: localSummary.relatedTopics,
+          difficulty: localSummary.difficulty,
+          timeToRead: localSummary.timeToRead,
+          originalContent: localSummary.originalContent,
+          tags: localSummary.tags
+        });
+        
+        // Use the database version if successful
+        setSummaries(prev => ({
+          ...prev,
+          [content.id]: dbSummary
+        }));
+        return dbSummary;
+      } catch (dbError) {
+        console.warn('Failed to save to database, using local summary:', dbError);
+        // Fall back to local summary if database save fails
+        setSummaries(prev => ({
+          ...prev,
+          [content.id]: localSummary
+        }));
+        return localSummary;
+      }
     } catch (err) {
       setError(err.message);
       console.error('Error summarizing content:', err);
@@ -34,15 +64,34 @@ export const useSummarizer = () => {
   };
 
   // Update summary rating and notes
-  const updateSummary = (contentId, updates) => {
-    const updated = summarizerService.updateSummary(contentId, updates);
-    if (updated) {
-      setSummaries(prev => ({
-        ...prev,
-        [contentId]: updated
-      }));
+  const updateSummary = async (contentId, updates) => {
+    try {
+      // Update locally first
+      const localUpdated = summarizerService.updateSummary(contentId, updates);
+      
+      if (localUpdated) {
+        // Try to update in database
+        try {
+          const dbUpdated = await apiClient.updateSummary(localUpdated.id, updates);
+          setSummaries(prev => ({
+            ...prev,
+            [contentId]: dbUpdated
+          }));
+          return dbUpdated;
+        } catch (dbError) {
+          console.warn('Failed to update in database, using local:', dbError);
+          setSummaries(prev => ({
+            ...prev,
+            [contentId]: localUpdated
+          }));
+          return localUpdated;
+        }
+      }
+      return null;
+    } catch (err) {
+      console.error('Error updating summary:', err);
+      return null;
     }
-    return updated;
   };
 
   // Rate summary
@@ -56,8 +105,14 @@ export const useSummarizer = () => {
   };
 
   // Get all summaries with filtering
-  const getAllSummaries = (filters = {}) => {
-    return summarizerService.getAllSummaries(filters);
+  const getAllSummaries = async (filters = {}) => {
+    try {
+      const data = await apiClient.getAllSummaries(filters);
+      return data.summaries || [];
+    } catch (error) {
+      console.warn('Failed to fetch summaries from database, using local:', error);
+      return summarizerService.getAllSummaries(filters);
+    }
   };
 
   // Check if content has summary
@@ -100,7 +155,16 @@ export const useSummarizer = () => {
   // Delete summary
   const deleteSummary = async (summaryId) => {
     try {
+      // Try to delete from database first
+      try {
+        await apiClient.deleteSummary(summaryId);
+      } catch (dbError) {
+        console.warn('Failed to delete from database:', dbError);
+      }
+      
+      // Also delete from local storage
       await summarizerService.deleteSummary(summaryId);
+      
       setSummaries(prev => {
         const updated = { ...prev };
         delete updated[summaryId];

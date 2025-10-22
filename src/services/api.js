@@ -1,3 +1,5 @@
+import portDetector from '../utils/portDetection.js';
+
 // Centralized API service for backend communication
 class ApiService {
   constructor() {
@@ -6,10 +8,28 @@ class ApiService {
     this.timeout = 30000; // 30 seconds
     this.retryAttempts = 3;
     this.retryDelay = 1000; // 1 second
+    this.portDetected = false;
+  }
+
+  // Initialize with port detection
+  async initialize() {
+    if (!this.portDetected) {
+      try {
+        await portDetector.detectAvailablePort();
+        this.baseURL = portDetector.getBaseURL();
+        this.portDetected = true;
+        console.log(`🔗 API Service initialized with: ${this.baseURL}`);
+      } catch (error) {
+        console.warn('⚠️ Port detection failed, using default URL:', this.baseURL);
+        console.warn('Error:', error.message);
+      }
+    }
   }
 
   // Generic request method with retry logic
   async request(endpoint, options = {}, retryCount = 0) {
+    // Ensure port detection is done
+    await this.initialize();
     const url = `${this.baseURL}${endpoint}`;
     const config = {
       headers: {

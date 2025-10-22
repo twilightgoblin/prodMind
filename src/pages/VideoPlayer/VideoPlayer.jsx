@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Clock, Calendar, CheckCircle, ThumbsUp, Eye, MessageCircle, Share2, BookOpen } from 'lucide-react';
+import apiClient from '../../utils/api';
 import './VideoPlayer.css';
 
 const VideoPlayer = () => {
@@ -50,14 +51,8 @@ const VideoPlayer = () => {
 
   const loadExistingNotes = async () => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/video-notes/${videoId}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setNotes(data.data.notes || '');
-      }
-      // If no notes found (404), that's fine - just keep notes empty
+      const data = await apiClient.getVideoNotes(videoId);
+      setNotes(data.data.notes || '');
     } catch (error) {
       console.error('Error loading existing notes:', error);
       // Don't show error to user - just keep notes empty
@@ -121,28 +116,16 @@ const VideoPlayer = () => {
     
     setSaveStatus('saving');
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/video-notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          videoId: videoData.id,
-          videoUrl: videoData.url,
-          title: videoData.title,
-          notes: notes,
-          timestamp: new Date().toISOString()
-        })
+      await apiClient.saveVideoNotes({
+        videoId: videoData.id,
+        videoUrl: videoData.url,
+        title: videoData.title,
+        notes: notes,
+        timestamp: new Date().toISOString()
       });
 
-      if (response.ok) {
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus(''), 2000);
-      } else {
-        setSaveStatus('error');
-        setTimeout(() => setSaveStatus(''), 2000);
-      }
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(''), 2000);
     } catch (error) {
       console.error('Error saving notes:', error);
       setSaveStatus('error');
@@ -157,25 +140,16 @@ const VideoPlayer = () => {
     }
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/scheduler/${videoData.scheduledId}/complete`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          notes: notes || 'Watched via video player'
-        })
+      await apiClient.completeScheduledContent(videoData.scheduledId, {
+        notes: notes || 'Watched via video player'
       });
 
-      if (response.ok) {
-        // Save notes if any
-        if (notes.trim()) {
-          await saveNotes();
-        }
-        alert('Great job! Content marked as completed.');
-        navigate('/smart-scheduler');
+      // Save notes if any
+      if (notes.trim()) {
+        await saveNotes();
       }
+      alert('Great job! Content marked as completed.');
+      navigate('/smart-scheduler');
     } catch (error) {
       console.error('Error marking content as complete:', error);
     }

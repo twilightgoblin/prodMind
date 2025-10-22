@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const scheduledContentSchema = new mongoose.Schema({
   userId: {
-    type: String,
-    required: true,
-    default: 'default'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
   contentId: {
     type: String,

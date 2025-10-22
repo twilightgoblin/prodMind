@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, BookOpen, Clock, ExternalLink, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { generateVideoPlayerUrl } from '../../utils/videoUtils';
+import apiClient from '../../utils/api';
 
 const VideoNotes = () => {
   const [notes, setNotes] = useState([]);
@@ -28,13 +29,8 @@ const VideoNotes = () => {
 
   const fetchNotes = async () => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/video-notes`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setNotes(data.data || []);
-      }
+      const data = await apiClient.getAllVideoNotes();
+      setNotes(data.data || []);
     } catch (error) {
       console.error('Error fetching notes:', error);
     } finally {
@@ -46,14 +42,8 @@ const VideoNotes = () => {
     if (!confirm('Are you sure you want to delete these notes?')) return;
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/video-notes/${videoId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        setNotes(notes.filter(note => note.videoId !== videoId));
-      }
+      await apiClient.deleteVideoNotes(videoId);
+      setNotes(notes.filter(note => note.videoId !== videoId));
     } catch (error) {
       console.error('Error deleting note:', error);
     }

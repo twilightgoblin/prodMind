@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 // Import routes
 import contentRoutes, { youtubeTrending, youtubeSearch, youtubeChannel } from './routes/content.js';
 import summarizerRoutes from './routes/summarizer.js';
-
+import authRoutes from './routes/auth.js';
 import schedulerRoutes from './routes/scheduler.js';
 import apiKeysRoutes from './routes/apiKeys.js';
 import videoNotesRoutes from './routes/videoNotes.js';
@@ -37,9 +37,19 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, postman)
     if (!origin) return callback(null, true);
-    if (corsOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+    
+    // In development, allow any localhost origin with any port
+    if (process.env.NODE_ENV === 'development') {
+      if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        return callback(null, true);
+      }
+    }
+    
+    // Check against configured origins
+    if (corsOrigins.includes(origin)) {
       return callback(null, true);
     }
+    
     return callback(new Error('Not allowed by CORS'));
   },
   // Make credentials configurable via env (defaults to true for browser apps)
@@ -174,7 +184,7 @@ apiRouter.use(validateRequest);
 // API routes
 apiRouter.use('/content', contentRoutes);
 apiRouter.use('/summarizer', summarizerRoutes);
-
+apiRouter.use('/auth', authRoutes);
 apiRouter.use('/scheduler', schedulerRoutes);
 apiRouter.use('/keys', apiKeysRoutes);
 apiRouter.use('/video-notes', videoNotesRoutes);
@@ -208,9 +218,10 @@ app.get('/', (req, res) => {
       health: '/api/health',
       content: '/api/content',
       summarizer: '/api/summarizer',
-
+      auth: '/api/auth',
       scheduler: '/api/scheduler',
-      keys: '/api/keys'
+      keys: '/api/keys',
+      videoNotes: '/api/video-notes'
     }
   });
 });

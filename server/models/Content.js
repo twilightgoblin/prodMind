@@ -65,8 +65,9 @@ const contentSchema = new mongoose.Schema({
     default: 'pending'
   },
   userId: {
-    type: String, // For future user authentication
-    default: 'default'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
   metadata: {
     viewCount: { type: Number, default: 0 },
