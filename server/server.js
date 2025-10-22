@@ -9,9 +9,7 @@ import mongoose from 'mongoose';
 import contentRoutes, { youtubeTrending, youtubeSearch, youtubeChannel } from './routes/content.js';
 import summarizerRoutes from './routes/summarizer.js';
 import mindMapRoutes from './routes/mindmap.js';
-import personaTunerRoutes from './routes/personaTuner.js';
 import schedulerRoutes from './routes/scheduler.js';
-import metaLearningRoutes from './routes/metaLearning.js';
 import apiKeysRoutes from './routes/apiKeys.js';
 
 // Import middleware
@@ -176,9 +174,7 @@ apiRouter.use(validateRequest);
 apiRouter.use('/content', contentRoutes);
 apiRouter.use('/summarizer', summarizerRoutes);
 apiRouter.use('/mindmap', mindMapRoutes);
-apiRouter.use('/persona-tuner', personaTunerRoutes);
 apiRouter.use('/scheduler', schedulerRoutes);
-apiRouter.use('/meta-learning', metaLearningRoutes);
 apiRouter.use('/keys', apiKeysRoutes);
 
 // Mount API router
@@ -211,9 +207,7 @@ app.get('/', (req, res) => {
       content: '/api/content',
       summarizer: '/api/summarizer',
       mindmap: '/api/mindmap',
-      'persona-tuner': '/api/persona-tuner',
       scheduler: '/api/scheduler',
-      'meta-learning': '/api/meta-learning',
       keys: '/api/keys'
     }
   });

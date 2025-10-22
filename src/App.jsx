@@ -9,8 +9,6 @@ import ContentDashboard from './components/ContentDashboard';
 
 import Summarizer from './pages/Summarizer/Summarizer';
 import MindMap from './pages/MindMap/MindMap';
-import PersonaTuner from './pages/PersonaTuner/PersonaTuner';
-import MetaLearning from './pages/MetaLearning/MetaLearning';
 import YouTubeTest from './pages/YouTubeTest/YouTubeTest';
 import CurateContentTest from './components/CurateContentTest';
 import SmartScheduler from './components/SmartScheduler';
@@ -39,8 +37,6 @@ const App = () => {
 
         <Route path="/summarizer" element={<Summarizer />} />
         <Route path="/mindmap" element={<MindMap />} />
-        <Route path="/persona-tuner" element={<PersonaTuner />} />
-        <Route path="/meta-learning" element={<MetaLearning />} />
         <Route path="/youtube-test" element={
           <div className="min-h-screen bg-[#060010] pt-20">
             <YouTubeTest />

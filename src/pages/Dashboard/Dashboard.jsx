@@ -5,8 +5,6 @@ import {
   Calendar, 
   FileText, 
   Brain, 
-  User, 
-  BarChart3,
   ArrowRight,
   Zap,
   Target,
@@ -51,24 +49,7 @@ const Dashboard = () => {
       color: 'indigo',
       features: ['Visual mapping', 'Knowledge graphs', 'Interactive design']
     },
-    {
-      id: 'persona',
-      title: 'PersonaTuner',
-      description: 'Adaptive AI personality for personalized interactions',
-      icon: User,
-      path: '/persona-tuner',
-      color: 'pink',
-      features: ['Personality analysis', 'Adaptive responses', 'Custom profiles']
-    },
-    {
-      id: 'analytics',
-      title: 'MetaLearning Analytics',
-      description: 'Advanced learning insights and progress tracking',
-      icon: BarChart3,
-      path: '/meta-learning',
-      color: 'orange',
-      features: ['Learning patterns', 'Progress tracking', 'Personalized plans']
-    }
+
   ];
 
   const getColorClasses = (color) => {
@@ -76,9 +57,7 @@ const Dashboard = () => {
       blue: 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
       green: 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
       purple: 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700',
-      indigo: 'from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700',
-      pink: 'from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700',
-      orange: 'from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'
+      indigo: 'from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700'
     };
     return colors[color] || colors.blue;
   };

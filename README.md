@@ -10,8 +10,6 @@ ProdMind is a comprehensive AI-powered productivity platform that helps you opti
 2. **Smart Scheduler** - Intelligent task scheduling and time management  
 3. **Content Summarizer** - Extract key insights from any content format
 4. **MindMap Generator** - Knowledge graph visualization and mapping
-5. **PersonaTuner** - Adaptive AI personality for personalized interactions
-6. **MetaLearning Analytics** - Advanced learning insights and progress tracking
 
 ## 🛠️ Tech Stack
 
@@ -94,17 +92,7 @@ npm run dev
 - Multiple layout styles (hierarchical, radial, network)
 - Export and sharing capabilities
 
-### PersonaTuner
-- Personality assessment and analysis
-- Adaptive AI communication styles
-- Custom personality profiles
-- Personalized interaction optimization
 
-### MetaLearning Analytics
-- Learning pattern analysis
-- Progress tracking and metrics
-- Personalized learning plan generation
-- Performance insights and recommendations
 
 ## 🚀 Usage
 
