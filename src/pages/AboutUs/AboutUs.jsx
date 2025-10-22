@@ -28,40 +28,40 @@ const iconComponents = {
 // Values for your topic
 const defaultValues = [
   {
-    title: "Smart Summaries",
+    title: "AI-Powered Learning",
     description:
-      "AI agents quickly summarise long-form articles, blogs, and papers to save you time.",
+      "Intelligent content curation and summarization that transforms how you learn from YouTube videos and educational content.",
     icon: "Lightbulb",
   },
   {
-    title: "Personalised Recommendations",
+    title: "Smart Scheduling",
     description:
-      "Discover content aligned to your interests and reading habits with curated feeds.",
+      "Optimize your learning time with AI-driven scheduling, calendar integration, and personalized learning paths.",
     icon: "Users",
   },
   {
-    title: "Focus & Highlight",
+    title: "Interactive Experience",
     description:
-      "Automatically highlight key insights and important points so you focus on what matters.",
+      "Take notes while watching, track progress, and build your personal knowledge base with seamless video integration.",
     icon: "Sparkles",
   },
   {
-    title: "Seamless Cross-Device",
+    title: "Mobile-First Design",
     description:
-      "Sync reading progress and AI suggestions across all your devices instantly.",
+      "Access your learning content anywhere with mobile-optimized design and cross-device synchronization.",
     icon: "Globe",
   },
 ];
 
 export default function AboutUs() {
   const aboutData = {
-    title: "About Us",
+    title: "About ProdMind",
     subtitle:
-      "Building personalised AI agents for productive content consumption.",
+      "Revolutionizing learning through AI-powered video intelligence and smart scheduling.",
     mission:
-      "Our mission is to empower readers with intelligent tools that condense, recommend, and highlight content—helping them stay informed without information overload.",
+      "Our mission is to transform how people learn by providing intelligent tools that curate, summarize, and schedule educational content—helping learners maximize their productivity and retention while minimizing time waste.",
     vision:
-      "We envision a world where people consume only the most relevant and insightful content, guided by AI agents that act as their personal knowledge companions.",
+      "We envision a future where personalized AI learning assistants help everyone achieve their educational goals efficiently, making quality learning accessible, organized, and optimized for individual needs.",
     values: defaultValues,
   };
 
@@ -146,6 +146,71 @@ export default function AboutUs() {
           </motion.div>
         </div>
 
+        {/* What We Do */}
+        <div className="mb-24">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={missionInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+            className="text-center mb-12"
+          >
+            <h2 className="bg-gradient-to-r from-gray-400 via-white to-black bg-clip-text text-transparent text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+              What We Do
+            </h2>
+            <p className="text-gray-300 mx-auto max-w-3xl text-lg leading-relaxed">
+              ProdMind is your AI-powered learning companion that transforms how you consume educational content. 
+              We specialize in YouTube video intelligence, smart content curation, and personalized learning optimization.
+            </p>
+          </motion.div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={missionInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
+              className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border border-blue-700/30 rounded-xl p-6 backdrop-blur-sm"
+            >
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
+                <Lightbulb className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Smart Content Intelligence</h3>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Our AI analyzes YouTube videos to provide intelligent summaries, priority scoring, and personalized recommendations based on your learning goals and preferences.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={missionInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+              className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border border-purple-700/30 rounded-xl p-6 backdrop-blur-sm"
+            >
+              <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4">
+                <Target className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Intelligent Scheduling</h3>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Optimize your learning time with AI-powered scheduling that integrates with your calendar, sends mobile reminders, and tracks your progress analytics.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={missionInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
+              className="bg-gradient-to-br from-green-900/30 to-green-800/20 border border-green-700/30 rounded-xl p-6 backdrop-blur-sm md:col-span-2 lg:col-span-1"
+            >
+              <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mb-4">
+                <Rocket className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Enhanced Learning Hub</h3>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Take interactive notes while watching videos, export to calendar apps, and build your personal knowledge base with comprehensive learning analytics.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+
         {/* Core Values */}
         <div ref={valuesRef} className="mb-24">
           <motion.div
@@ -158,7 +223,7 @@ export default function AboutUs() {
               Our Core Values
             </h2>
             <p className="text-white mx-auto mt-4 max-w-2xl text-lg">
-              The principles that guide everything we do and every decision we make.
+              The core principles that drive our mission to revolutionize learning through intelligent technology.
             </p>
           </motion.div>
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -190,6 +255,71 @@ export default function AboutUs() {
           </div>
 
         </div>
+
+        {/* Impact Stats */}
+        <div className="mb-24">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={valuesInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+            className="text-center mb-12"
+          >
+            <h2 className="bg-gradient-to-r from-gray-400 via-white to-black bg-clip-text text-transparent text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+              Our Impact
+            </h2>
+            <p className="text-gray-300 mx-auto max-w-2xl text-lg">
+              Helping learners worldwide optimize their educational journey with AI-powered intelligence.
+            </p>
+          </motion.div>
+
+          <div className="grid gap-8 md:grid-cols-4 max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={valuesInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+              className="text-center"
+            >
+              <div className="text-4xl font-bold text-blue-400 mb-2">70%</div>
+              <div className="text-gray-300 text-sm">Time Saved</div>
+              <div className="text-gray-500 text-xs mt-1">Average learning efficiency improvement</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={valuesInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
+              className="text-center"
+            >
+              <div className="text-4xl font-bold text-purple-400 mb-2">3x</div>
+              <div className="text-gray-300 text-sm">Better Retention</div>
+              <div className="text-gray-500 text-xs mt-1">Improved knowledge retention rates</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={valuesInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+              className="text-center"
+            >
+              <div className="text-4xl font-bold text-green-400 mb-2">24/7</div>
+              <div className="text-gray-300 text-sm">AI Assistant</div>
+              <div className="text-gray-500 text-xs mt-1">Always available learning support</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={valuesInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
+              className="text-center"
+            >
+              <div className="text-4xl font-bold text-yellow-400 mb-2">∞</div>
+              <div className="text-gray-300 text-sm">Content Access</div>
+              <div className="text-gray-500 text-xs mt-1">Unlimited YouTube integration</div>
+            </motion.div>
+          </div>
+        </div>
+
+
       </div>
     </section>
   );

@@ -6,14 +6,14 @@
  */
 
 import { cn } from "@/lib/utils";
-import { ArrowRight, Code2, Copy, Rocket, Zap } from "lucide-react";
+import { ArrowRight, Brain, BookOpen, Calendar, Zap, Play, Target, Clock } from "lucide-react";
 import { useState } from "react";
 
 export default function CardFlip({
-  title = "Build MVPs Fast",
-  subtitle = "Launch your idea in record time",
-  description = "Copy, paste, customize—and launch your MVP faster than ever.",
-  features = ["Copy & Paste Ready", "Developer-First", "MVP Optimized", "Zero Setup Required"],
+  title = "Smart Content Intelligence",
+  subtitle = "AI-powered content curation",
+  description = "Discover and prioritize YouTube videos with AI-driven analysis and personalized recommendations.",
+  features = ["AI Priority Scoring", "Smart Tagging", "Content Analysis", "YouTube Integration"],
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -57,12 +57,12 @@ export default function CardFlip({
                 />
               ))}
 
-              {/* Central rocket icon */}
+              {/* Central brain icon */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
                   className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/50 animate-pulse transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
                 >
-                  <Rocket className="h-6 w-6 text-white" />
+                  <Brain className="h-6 w-6 text-white" />
                 </div>
               </div>
             </div>
@@ -103,7 +103,7 @@ export default function CardFlip({
             <div className="space-y-2">
               <div className="mb-2 flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary via-primary/90 to-primary/80">
-                  <Code2 className="h-4 w-4 text-white" />
+                  <Brain className="h-4 w-4 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-white transition-all duration-500">
                   {title}
@@ -116,7 +116,7 @@ export default function CardFlip({
 
             <div className="space-y-2.5">
               {features.map((feature, index) => {
-                const icons = [Copy, Code2, Rocket, Zap];
+                const icons = [Target, BookOpen, Calendar, Play];
                 const IconComponent = icons[index % icons.length];
                 return (
                   <div
@@ -139,15 +139,18 @@ export default function CardFlip({
           </div>
 
           <div className="relative z-10 mt-auto border-t border-gray-700 pt-4">
-            <div className="group/start relative flex items-center justify-between rounded-lg p-2.5 transition-all duration-300 bg-gray-800 hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent hover:scale-[1.02] cursor-pointer border border-transparent hover:border-primary/20">
+            <a
+              href="/dashboard/content"
+              className="group/start relative flex items-center justify-between rounded-lg p-2.5 transition-all duration-300 bg-gray-800 hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent hover:scale-[1.02] cursor-pointer border border-transparent hover:border-primary/20 no-underline"
+            >
               <span className="text-sm font-semibold text-white group-hover/start:text-primary transition-colors duration-300">
-                Start Building
+                Start Learning
               </span>
               <div className="group/icon relative">
                 <div className="absolute inset-[-6px] rounded-lg transition-all duration-300 scale-90 opacity-0 group-hover/start:scale-100 group-hover/start:opacity-100 from-primary/20 via-primary/10 bg-gradient-to-br to-transparent" />
                 <ArrowRight className="text-primary h-4 w-4 transition-all duration-300 group-hover/start:translate-x-1 group-hover/start:scale-110" />
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </div>

@@ -19,6 +19,7 @@ import SignUp from './pages/Auth/SignUp';
 import AuthDemo from './pages/Auth/AuthDemo';
 import { Contact } from 'lucide-react';
 import Footer4Col from './components/Footer/Footer';
+import LoopingText from './components/LoopingText';
 
 const App = () => {
   return (
@@ -31,6 +32,7 @@ const App = () => {
             <Home />
             <FeaturesPage />
             <AboutUs />
+            <LoopingText />
             <Footer4Col/>
           </div>
         } />
