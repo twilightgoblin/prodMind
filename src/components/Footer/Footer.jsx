@@ -1,20 +1,20 @@
 import {
-  Dribbble,
-  Facebook,
-  Github,
-  Instagram,
   Mail,
   MapPin,
   Phone,
-  Twitter,
+  ExternalLink,
+  MessageCircle,
+  Users,
+  Code,
+  Palette,
+  Shield,
+  Globe,
+  Zap,
+  Clock,
+  ArrowRight,
 } from "lucide-react";
 
 const data = {
-  facebookLink: "https://facebook.com/yourpage",
-  instaLink: "https://instagram.com/yourpage",
-  twitterLink: "https://twitter.com/yourpage",
-  githubLink: "https://github.com/yourusername",
-  dribbbleLink: "https://dribbble.com/yourprofile",
   services: {
     ai: "/ai-agent",
     analytics: "/analytics",
@@ -31,25 +31,34 @@ const data = {
     faqs: "/faqs",
     support: "/support",
     livechat: "/live-chat",
+    documentation: "/docs",
+    tutorials: "/tutorials",
+  },
+  legal: {
+    privacy: "/privacy-policy",
+    terms: "/terms-of-service",
+    cookies: "/cookie-policy",
+    security: "/security",
   },
   contact: {
-    email: "boomyoeveryone@gmail.com",
-    phone: "+91 6364039992",
-    address: "Bengaluru, Karnataka, India",
+    email: "contact@productivecontent.com",
+    phone: "+1 (555) 123-4567",
+    address: "San Francisco, CA, United States",
+    businessHours: "Mon-Fri 9AM-6PM PST",
   },
   company: {
-    name: "Productive Content consumption",
+    name: "Productive Content",
     description:
-      "Personalized AI agent helping you consume content more efficiently, improve productivity, and stay informed effortlessly.",
+      "Enterprise-grade AI-powered content management platform. Streamline your workflow, enhance productivity, and transform how your team consumes and processes information.",
   },
 };
 
 const socialLinks = [
-  { icon: Facebook, label: "Facebook", href: data.facebookLink },
-  { icon: Instagram, label: "Instagram", href: data.instaLink },
-  { icon: Twitter, label: "Twitter", href: data.twitterLink },
-  { icon: Github, label: "GitHub", href: data.githubLink },
-  { icon: Dribbble, label: "Dribbble", href: data.dribbbleLink },
+  { icon: MessageCircle, label: "Facebook", href: data.facebookLink },
+  { icon: Users, label: "Instagram", href: data.instaLink },
+  { icon: ExternalLink, label: "Twitter", href: data.twitterLink },
+  { icon: Code, label: "GitHub", href: data.githubLink },
+  { icon: Palette, label: "Dribbble", href: data.dribbbleLink },
 ];
 
 const aboutLinks = [
@@ -68,60 +77,127 @@ const serviceLinks = [
 
 const helpfulLinks = [
   { text: "FAQs", href: data.help.faqs },
-  { text: "Support", href: data.help.support },
+  { text: "Support Center", href: data.help.support },
+  { text: "Documentation", href: data.help.documentation },
+  { text: "Tutorials", href: data.help.tutorials },
   { text: "Live Chat", href: data.help.livechat, hasIndicator: true },
 ];
 
-const contactInfo = [
-  { icon: Mail, text: data.contact.email },
-  { icon: Phone, text: data.contact.phone },
-  { icon: MapPin, text: data.contact.address, isAddress: true },
+const legalLinks = [
+  { text: "Privacy Policy", href: data.legal.privacy },
+  { text: "Terms of Service", href: data.legal.terms },
+  { text: "Cookie Policy", href: data.legal.cookies },
+  { text: "Security", href: data.legal.security },
 ];
+
+const contactInfo = [
+  { 
+    icon: Mail, 
+    text: data.contact.email, 
+    href: `mailto:${data.contact.email}`,
+    label: "Email us"
+  },
+  { 
+    icon: Phone, 
+    text: data.contact.phone, 
+    href: `tel:${data.contact.phone.replace(/\s/g, '')}`,
+    label: "Call us"
+  },
+  { 
+    icon: MapPin, 
+    text: data.contact.address, 
+    isAddress: true,
+    label: "Visit us"
+  },
+];
+
+
 
 export default function Footer4Col() {
   return (
     <footer
       id="footer"
-      className="bg-gradient-to-b from-gray-900 via-gray-100 to-black w-full place-self-end"
+      className="bg-black w-full place-self-end border-t border-gray-800"
 >
-      <div className="mx-auto max-w-screen-xl px-4 pt-24 pb-12 sm:px-6 lg:px-8 lg:pt-32">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
-          {/* Company Info & Socials */}
-          <div>
-            <p className="text-2xl font-semibold text-center sm:text-left">
-              {data.company.name}
-            </p>
+      <div className="mx-auto max-w-screen-xl px-4 pt-16 pb-8 sm:px-6 lg:px-8">
 
-            <p className="text-foreground/50 mt-8 max-w-md text-center leading-relaxed sm:max-w-xs sm:text-left">
-              {data.company.description}
-            </p>
 
-            <ul className="mt-10 flex justify-center gap-8 sm:justify-start md:gap-10">
-              {socialLinks.map(({ icon: Icon, label, href }) => (
-                <li key={label}>
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-5">
+          {/* Company Info & Contact */}
+          <div className="lg:col-span-2">
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-white mb-4">
+                {data.company.name}
+              </h3>
+              <p className="text-gray-400 leading-relaxed mb-6">
+                {data.company.description}
+              </p>
+            </div>
+
+            {/* Contact Information */}
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-white mb-4">Contact Information</h4>
+              <div className="space-y-3">
+                {contactInfo.map(({ icon: Icon, text, isAddress, href, label }) => (
                   <a
+                    key={text}
+                    className="group flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-200"
+                    href={href || "#"}
+                    title={label}
+                    {...(href?.startsWith('mailto:') || href?.startsWith('tel:') ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+                  >
+                    <Icon className="size-5 text-purple-400 group-hover:text-purple-300 transition-colors duration-200" />
+                    {isAddress ? (
+                      <address className="not-italic">{text}</address>
+                    ) : (
+                      <span>{text}</span>
+                    )}
+                  </a>
+                ))}
+                <div className="flex items-center gap-3 text-gray-400">
+                  <Clock className="size-5 text-purple-400" />
+                  <span className="flex items-center gap-2">
+                    {data.contact.businessHours}
+                    <div className="size-2 bg-green-500 rounded-full animate-pulse"></div>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Social Links */}
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-4">Follow Us</h4>
+              <div className="flex gap-4">
+                {socialLinks.map(({ icon: Icon, label, href }) => (
+                  <a
+                    key={label}
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary hover:text-primary/80 transition"
+                    className="w-10 h-10 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:border-purple-500/50 hover:bg-gray-700 transition-all duration-200"
                   >
                     <span className="sr-only">{label}</span>
-                    <Icon className="size-6" />
+                    <Icon className="size-5" />
                   </a>
-                </li>
-              ))}
-            </ul>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Links Sections */}
-          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 md:grid-cols-4 lg:col-span-2">
-            {/* About Us */}
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">About Us</p>
-              <ul className="mt-10 space-y-6 text-sm">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 lg:col-span-3">
+            {/* Company */}
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-6">Company</h4>
+              <ul className="space-y-3">
                 {aboutLinks.map(({ text, href }) => (
                   <li key={text}>
-                    <a className="text-secondary-foreground/70 transition" href={href}>
+                    <a 
+                      className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group" 
+                      href={href}
+                    >
+                      <ArrowRight className="size-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                       {text}
                     </a>
                   </li>
@@ -129,13 +205,17 @@ export default function Footer4Col() {
               </ul>
             </div>
 
-            {/* Our Services */}
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Our Services</p>
-              <ul className="mt-10 space-y-6 text-sm">
+            {/* Services */}
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-6">Services</h4>
+              <ul className="space-y-3">
                 {serviceLinks.map(({ text, href }) => (
                   <li key={text}>
-                    <a className="text-secondary-foreground/70 transition" href={href}>
+                    <a 
+                      className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group" 
+                      href={href}
+                    >
+                      <ArrowRight className="size-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                       {text}
                     </a>
                   </li>
@@ -143,69 +223,71 @@ export default function Footer4Col() {
               </ul>
             </div>
 
-            {/* Helpful Links */}
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Helpful Links</p>
-              <ul className="mt-10 space-y-6 text-sm">
+            {/* Support & Legal */}
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-6">Support & Legal</h4>
+              <ul className="space-y-3">
                 {helpfulLinks.map(({ text, href, hasIndicator }) => (
                   <li key={text}>
                     <a
                       href={href}
-                      className={`${
-                        hasIndicator
-                          ? "group flex justify-center gap-2 sm:justify-start"
-                          : "text-secondary-foreground/70 transition"
-                      }`}
+                      className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
                     >
-                      <span className="text-secondary-foreground/70 transition">{text}</span>
+                      <ArrowRight className="size-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                      <span>{text}</span>
                       {hasIndicator && (
-                        <span className="relative flex size-2">
-                          <span className="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
-                          <span className="bg-primary relative inline-flex size-2 rounded-full" />
+                        <span className="relative flex size-2 ml-1">
+                          <span className="bg-green-500 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
+                          <span className="bg-green-500 relative inline-flex size-2 rounded-full" />
                         </span>
                       )}
                     </a>
                   </li>
                 ))}
-              </ul>
-            </div>
-
-            {/* Contact Us */}
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Contact Us</p>
-              <ul className="mt-10 space-y-6 text-sm">
-                {contactInfo.map(({ icon: Icon, text, isAddress }) => (
-                  <li key={text}>
-                    <a
-                      className="flex items-center justify-center gap-2 sm:justify-start"
-                      href="#"
-                    >
-                      <Icon className="text-primary size-5 shrink-0 shadow-sm" />
-                      {isAddress ? (
-                        <address className="text-secondary-foreground/70 -mt-0.5 flex-1 not-italic transition">
-                          {text}
-                        </address>
-                      ) : (
-                        <span className="text-secondary-foreground/70 flex-1 transition">{text}</span>
-                      )}
-                    </a>
-                  </li>
-                ))}
+                
+                {/* Legal Links */}
+                <li className="pt-4 mt-4 border-t border-gray-800">
+                  <div className="space-y-3">
+                    {legalLinks.map(({ text, href }) => (
+                      <a 
+                        key={text}
+                        className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group text-sm" 
+                        href={href}
+                      >
+                        <ArrowRight className="size-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                        {text}
+                      </a>
+                    ))}
+                  </div>
+                </li>
               </ul>
             </div>
           </div>
         </div>
 
         {/* Footer Bottom */}
-        <div className="mt-16 border-t pt-8">
-          <div className="text-center sm:flex sm:justify-between sm:text-left">
-            <p className="text-sm">
-              <span className="block sm:inline">All rights reserved.</span>
-            </p>
-
-            <p className="text-secondary-foreground/70 mt-4 text-sm transition sm:order-first sm:mt-0">
-              &copy; 2025 {data.company.name}
-            </p>
+        <div className="mt-12 pt-8 border-t border-gray-800">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-4">
+              <p className="text-gray-400 text-sm">
+                &copy; 2025 {data.company.name}. All rights reserved.
+              </p>
+              <div className="flex items-center gap-2">
+                <Shield className="size-4 text-green-500" />
+                <span className="text-sm text-gray-400">SOC 2 Compliant</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Zap className="size-4 text-yellow-500" />
+                <span className="text-sm text-gray-400">99.9% Uptime</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="size-4 text-blue-500" />
+                <span className="text-sm text-gray-400">Global CDN</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -17,7 +17,6 @@ import VideoNotes from './pages/VideoNotes/VideoNotes';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
 import AuthDemo from './pages/Auth/AuthDemo';
-import { Contact } from 'lucide-react';
 import Footer4Col from './components/Footer/Footer';
 import LoopingText from './components/LoopingText';
 
