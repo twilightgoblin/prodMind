@@ -1,15 +1,16 @@
 // Smart Scheduler Dashboard Component
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, TrendingUp, Settings, Play, CheckCircle, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useScheduler } from '../hooks/useScheduler';
 import { useContent } from '../hooks/useContent';
+import { generateVideoPlayerUrl } from '../utils/videoUtils';
 
 const SchedulerDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('today');
   const [showSettings, setShowSettings] = useState(false);
-  
+
   const { content } = useContent();
   const {
     schedule,
@@ -107,20 +108,18 @@ const SchedulerDashboard = () => {
             <span>Priority: {session.priority}/10</span>
             <span>Focus: {session.focusPrediction}/10</span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {session.content?.url && (
-              <a
-                href={session.content.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded text-xs hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-1"
+              <Link
+                to={generateVideoPlayerUrl(session.content)}
+                className="px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded text-xs hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-1 no-underline"
               >
                 <Play size={12} />
                 Watch
-              </a>
+              </Link>
             )}
-            
+
             {status === 'upcoming' && (
               <button
                 onClick={() => completeSession(session.id)}
@@ -129,7 +128,7 @@ const SchedulerDashboard = () => {
                 Start
               </button>
             )}
-            
+
             {status === 'active' && (
               <button
                 onClick={() => completeSession(session.id, 8)}
@@ -148,7 +147,7 @@ const SchedulerDashboard = () => {
     if (!patterns) return null;
 
     const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8 AM to 8 PM
-    
+
     return (
       <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-4">
         <h3 className="text-white font-medium mb-4">Focus Patterns</h3>
@@ -157,14 +156,14 @@ const SchedulerDashboard = () => {
             const data = patterns.hourlyEngagement[hour] || { total: 0, successful: 0 };
             const successRate = data.total > 0 ? (data.successful / data.total) * 100 : 0;
             const isPeak = patterns.focusPeaks.includes(hour);
-            
+
             return (
               <div key={hour} className="flex items-center gap-3">
                 <span className="text-sm text-gray-400 w-16">
                   {hour}:00 {hour < 12 ? 'AM' : 'PM'}
                 </span>
                 <div className="flex-1 bg-gray-800 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full ${isPeak ? 'bg-green-400' : 'bg-blue-400'}`}
                     style={{ width: `${successRate}%` }}
                   />
@@ -186,7 +185,7 @@ const SchedulerDashboard = () => {
   const PreferencesPanel = () => (
     <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-4">
       <h3 className="text-white font-medium mb-4">Scheduling Preferences</h3>
-      
+
       <div className="space-y-4">
         <div>
           <label className="block text-sm text-gray-300 mb-2">Focus Hours</label>
@@ -279,7 +278,7 @@ const SchedulerDashboard = () => {
           </div>
           <p className="text-2xl font-bold text-white">{stats.total}</p>
         </div>
-        
+
         <div className="bg-gray-900/50 backdrop-blur-sm p-4 rounded-lg border border-gray-800">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle size={20} className="text-green-400" />
@@ -287,7 +286,7 @@ const SchedulerDashboard = () => {
           </div>
           <p className="text-2xl font-bold text-white">{stats.completed}</p>
         </div>
-        
+
         <div className="bg-gray-900/50 backdrop-blur-sm p-4 rounded-lg border border-gray-800">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp size={20} className="text-yellow-400" />
@@ -295,7 +294,7 @@ const SchedulerDashboard = () => {
           </div>
           <p className="text-2xl font-bold text-white">{stats.completionRate}%</p>
         </div>
-        
+
         <div className="bg-gray-900/50 backdrop-blur-sm p-4 rounded-lg border border-gray-800">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm font-medium text-gray-300">Avg Focus</span>
@@ -310,11 +309,10 @@ const SchedulerDashboard = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-400 hover:text-white'
+              }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>

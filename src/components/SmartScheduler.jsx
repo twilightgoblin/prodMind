@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Calendar, Clock, Play, CheckCircle, X, Filter, BarChart3, Plus } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import CalendarIntegration from './CalendarIntegration';
+import { generateVideoPlayerUrl } from '../utils/videoUtils';
 
 const SmartScheduler = () => {
   const navigate = useNavigate();
@@ -392,15 +393,13 @@ const SmartScheduler = () => {
                           <span className="text-yellow-400">Priority: {item.priority}</span>
                         </div>
                         <div className="flex gap-2">
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-1 font-medium"
+                          <Link
+                            to={generateVideoPlayerUrl(item)}
+                            className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-1 font-medium no-underline"
                           >
                             <Play size={14} />
                             Watch
-                          </a>
+                          </Link>
                           <button
                             onClick={() => addToMobileCalendar(item)}
                             className="px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
@@ -498,14 +497,26 @@ const SmartScheduler = () => {
                     {/* Actions */}
                     <div className="flex flex-wrap items-center gap-2 mt-3">
                       {/* Primary Watch Button - More Prominent */}
+                      <Link
+                        to={generateVideoPlayerUrl(item)}
+                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-2 font-medium shadow-lg no-underline"
+                      >
+                        <Play size={16} />
+                        Watch Now
+                      </Link>
+
+                      {/* YouTube Link - Secondary */}
                       <a
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-2 font-medium shadow-lg"
+                        className="px-3 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-1"
+                        title="Open in YouTube"
                       >
-                        <Play size={16} />
-                        Watch Now
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                        YT
                       </a>
 
                       {/* Add to Calendar Button */}

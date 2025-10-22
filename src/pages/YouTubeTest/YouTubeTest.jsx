@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Search, TrendingUp, Sparkles, Play, Clock, Eye, ThumbsUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import contentService from '../../services/contentService';
 import ApiKeyStatus from '../../components/ApiKeyStatus';
+import { generateVideoPlayerUrl } from '../../utils/videoUtils';
 
 const YouTubeTest = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -255,15 +257,13 @@ const YouTubeTest = () => {
                         Priority: {video.priority}/10
                       </span>
                     )}
-                    <a
-                      href={video.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                    <Link
+                      to={generateVideoPlayerUrl(video)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 no-underline"
                     >
                       <Play size={14} />
                       Watch
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>

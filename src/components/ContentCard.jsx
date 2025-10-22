@@ -1,6 +1,8 @@
 // Individual content card component
 import { useState } from 'react';
 import { Play, Clock, Tag, Star, ExternalLink, Check, Eye, ThumbsUp, MessageCircle, Calendar } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { generateVideoPlayerUrl } from '../utils/videoUtils';
 
 const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, isScheduled = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -142,15 +144,22 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
       {/* Actions */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-800">
         <div className="flex gap-2">
+          <Link
+            to={generateVideoPlayerUrl(content)}
+            className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors no-underline"
+          >
+            <Play size={14} />
+            Watch
+          </Link>
+          
           <a
             href={content.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-2 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors"
+            title="Open in YouTube"
           >
-            <Play size={14} />
-            Watch
-            <ExternalLink size={12} />
+            <ExternalLink size={14} />
           </a>
           
           {/* Schedule Button */}

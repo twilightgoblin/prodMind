@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { RefreshCw, Calendar, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import ScheduleModal from './ScheduleModal';
+import { generateVideoPlayerUrl } from '../utils/videoUtils';
 
 const CurateContentTest = () => {
   const [content, setContent] = useState([]);
@@ -185,14 +187,12 @@ const CurateContentTest = () => {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 text-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                  <Link
+                    to={generateVideoPlayerUrl(item)}
+                    className="flex-1 text-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors no-underline"
                   >
                     Watch Video
-                  </a>
+                  </Link>
                   <button
                     onClick={() => handleScheduleClick(item)}
                     disabled={scheduledItems.has(item.id)}

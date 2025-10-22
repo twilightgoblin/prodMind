@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Play, Calendar, Clock, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { generateVideoPlayerUrl } from '../utils/videoUtils';
 
 const TodayWatchWidget = ({ onNavigateToScheduler }) => {
   const [todaysContent, setTodaysContent] = useState([]);
@@ -120,15 +122,13 @@ const TodayWatchWidget = ({ onNavigateToScheduler }) => {
                 </div>
               </div>
               <div className="flex gap-1">
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                <Link
+                  to={generateVideoPlayerUrl(item)}
+                  className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center gap-1 no-underline"
                 >
                   <Play size={12} />
                   Watch
-                </a>
+                </Link>
                 <button
                   onClick={() => addToMobileCalendar(item)}
                   className="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition-colors"

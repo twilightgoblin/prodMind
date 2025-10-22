@@ -4,7 +4,7 @@ import {
   BookOpen, 
   Calendar, 
   FileText, 
-  Brain, 
+  NotebookPen, 
   ArrowRight,
   Zap,
   Target,
@@ -60,17 +60,17 @@ const Dashboard = () => {
       ]
     },
     {
-      id: 'mindmap',
-      title: 'MindMap Generator',
-      description: 'Knowledge graph visualization and mapping',
-      icon: Brain,
-      path: '/mindmap',
+      id: 'notes',
+      title: 'Learning Notes',
+      description: 'Centralized note management and learning insights',
+      icon: NotebookPen,
+      path: '/notes',
       color: 'indigo',
       features: [
-        'AI-powered knowledge graph creation',
-        'Multiple layout styles (hierarchical, radial, network)',
-        'Interactive visualization with depth control',
-        'Export and sharing capabilities'
+        'Auto-save notes while watching videos',
+        'Search across all your learning notes',
+        'Learning progress tracking and analytics',
+        'Quick access to video content from notes'
       ]
     }
   ];

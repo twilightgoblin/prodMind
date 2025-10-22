@@ -8,9 +8,10 @@ import mongoose from 'mongoose';
 // Import routes
 import contentRoutes, { youtubeTrending, youtubeSearch, youtubeChannel } from './routes/content.js';
 import summarizerRoutes from './routes/summarizer.js';
-import mindMapRoutes from './routes/mindmap.js';
+
 import schedulerRoutes from './routes/scheduler.js';
 import apiKeysRoutes from './routes/apiKeys.js';
+import videoNotesRoutes from './routes/videoNotes.js';
 
 // Import middleware
 import { logger, requestLogger } from './middleware/logger.js';
@@ -173,9 +174,10 @@ apiRouter.use(validateRequest);
 // API routes
 apiRouter.use('/content', contentRoutes);
 apiRouter.use('/summarizer', summarizerRoutes);
-apiRouter.use('/mindmap', mindMapRoutes);
+
 apiRouter.use('/scheduler', schedulerRoutes);
 apiRouter.use('/keys', apiKeysRoutes);
+apiRouter.use('/video-notes', videoNotesRoutes);
 
 // Mount API router
 app.use('/api', apiRouter);
@@ -206,7 +208,7 @@ app.get('/', (req, res) => {
       health: '/api/health',
       content: '/api/content',
       summarizer: '/api/summarizer',
-      mindmap: '/api/mindmap',
+
       scheduler: '/api/scheduler',
       keys: '/api/keys'
     }

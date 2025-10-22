@@ -151,30 +151,7 @@ class ApiService {
     return this.delete(`/summarizer/${id}`);
   }
 
-  // MindMap API methods
-  async generateMindMap(topic, depth = 3, style = 'hierarchical') {
-    return this.post('/mindmap/generate', { topic, depth, style });
-  }
 
-  async saveMindMap(mindMapData) {
-    return this.post('/mindmap', mindMapData);
-  }
-
-  async getMindMaps(params = {}) {
-    return this.get('/mindmap', params);
-  }
-
-  async getMindMap(id) {
-    return this.get(`/mindmap/${id}`);
-  }
-
-  async updateMindMap(id, updates) {
-    return this.put(`/mindmap/${id}`, updates);
-  }
-
-  async deleteMindMap(id) {
-    return this.delete(`/mindmap/${id}`);
-  }
 
   // Health check
   async healthCheck() {

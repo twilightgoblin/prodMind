@@ -113,23 +113,7 @@ export const validateSummaryData = (data) => {
   return errors;
 };
 
-export const validateMindMapData = (data) => {
-  const errors = [];
 
-  if (!data.topic || typeof data.topic !== 'string') {
-    errors.push('Topic is required and must be a string');
-  }
-
-  if (data.depth && (typeof data.depth !== 'number' || data.depth < 1 || data.depth > 5)) {
-    errors.push('Depth must be a number between 1 and 5');
-  }
-
-  if (data.style && !['hierarchical', 'radial', 'network'].includes(data.style)) {
-    errors.push('Style must be one of: hierarchical, radial, network');
-  }
-
-  return errors;
-};
 
 // Helper functions
 const generateRequestId = () => {

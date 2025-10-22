@@ -8,10 +8,12 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import ContentDashboard from './components/ContentDashboard';
 
 import Summarizer from './pages/Summarizer/Summarizer';
-import MindMap from './pages/MindMap/MindMap';
+
 import YouTubeTest from './pages/YouTubeTest/YouTubeTest';
 import CurateContentTest from './components/CurateContentTest';
 import SmartScheduler from './components/SmartScheduler';
+import VideoPlayer from './pages/VideoPlayer/VideoPlayer';
+import VideoNotes from './pages/VideoNotes/VideoNotes';
 import { Contact } from 'lucide-react';
 import Footer4Col from './components/Footer/Footer';
 
@@ -36,7 +38,7 @@ const App = () => {
         } />
 
         <Route path="/summarizer" element={<Summarizer />} />
-        <Route path="/mindmap" element={<MindMap />} />
+
         <Route path="/youtube-test" element={
           <div className="min-h-screen bg-[#060010] pt-20">
             <YouTubeTest />
@@ -48,6 +50,8 @@ const App = () => {
             <SmartScheduler />
           </div>
         } />
+        <Route path="/video/:videoId" element={<VideoPlayer />} />
+        <Route path="/notes" element={<VideoNotes />} />
       </Routes>
     </BrowserRouter>
   );
