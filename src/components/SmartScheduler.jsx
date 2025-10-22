@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Play, CheckCircle, X, Filter, BarChart3 } from 'lucide-react';
+import { Calendar, Clock, Play, CheckCircle, X, Filter, BarChart3, Plus } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import CalendarIntegration from './CalendarIntegration';
 
 const SmartScheduler = () => {
+  const navigate = useNavigate();
   const [scheduledContent, setScheduledContent] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -257,6 +259,14 @@ const SmartScheduler = () => {
             Smart Scheduler
           </h1>
           <div className="flex gap-2">
+            <a
+              href="/dashboard/content"
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center gap-2 font-medium shadow-lg no-underline text-white"
+              style={{ textDecoration: 'none', color: 'white' }}
+            >
+              <Plus size={16} />
+              Generate Schedule
+            </a>
             <button
               onClick={() => setShowCalendar(!showCalendar)}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
@@ -543,12 +553,21 @@ const SmartScheduler = () => {
           <div className="text-center py-12">
             <Calendar size={48} className="text-gray-600 mx-auto mb-4" />
             <p className="text-gray-300 mb-2">No scheduled content found</p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-sm mb-6">
               {filter === 'all' 
                 ? 'Schedule some content from the Content Intelligence page to get started!'
                 : `No content with status "${filter}" found for the selected date.`
               }
             </p>
+            {filter === 'all' && (
+              <Link
+                to="/dashboard/content"
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center gap-2 font-medium shadow-lg mx-auto no-underline"
+              >
+                <Plus size={20} />
+                Go to Content Intelligence
+              </Link>
+            )}
           </div>
         )}
       </div>

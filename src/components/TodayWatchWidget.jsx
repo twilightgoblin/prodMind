@@ -15,7 +15,7 @@ const TodayWatchWidget = ({ onNavigateToScheduler }) => {
       const today = new Date().toISOString().split('T')[0];
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
       const response = await fetch(`${apiBaseUrl}/scheduler/date/${today}`);
-      
+
       if (response.ok) {
         const data = await response.json();
         const scheduledToday = data.scheduledContent.filter(item => item.status === 'scheduled');
@@ -39,7 +39,7 @@ const TodayWatchWidget = ({ onNavigateToScheduler }) => {
   const addToMobileCalendar = (item) => {
     const startDate = new Date(`${item.scheduledDate.split('T')[0]}T${item.scheduledTime}`);
     const endDate = new Date(startDate.getTime() + (item.estimatedDuration || 30) * 60000);
-    
+
     const formatDate = (date) => {
       return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     };
@@ -104,8 +104,8 @@ const TodayWatchWidget = ({ onNavigateToScheduler }) => {
         {todaysContent.slice(0, 3).map(item => (
           <div key={item._id} className="bg-gray-900/50 border border-gray-700 rounded-lg p-3">
             <div className="flex items-center gap-3">
-              <img 
-                src={item.thumbnail} 
+              <img
+                src={item.thumbnail}
                 alt={item.title}
                 className="w-12 h-8 object-cover rounded flex-shrink-0"
               />

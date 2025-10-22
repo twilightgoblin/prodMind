@@ -6,7 +6,7 @@ import FeaturesPage from './pages/Features/Features';
 import AboutUs from './pages/AboutUs/AboutUs';
 import Dashboard from './pages/Dashboard/Dashboard';
 import ContentDashboard from './components/ContentDashboard';
-import Scheduler from './pages/Scheduler/Scheduler';
+
 import Summarizer from './pages/Summarizer/Summarizer';
 import MindMap from './pages/MindMap/MindMap';
 import PersonaTuner from './pages/PersonaTuner/PersonaTuner';
@@ -36,7 +36,7 @@ const App = () => {
             <ContentDashboard />
           </div>
         } />
-        <Route path="/scheduler" element={<Scheduler />} />
+
         <Route path="/summarizer" element={<Summarizer />} />
         <Route path="/mindmap" element={<MindMap />} />
         <Route path="/persona-tuner" element={<PersonaTuner />} />

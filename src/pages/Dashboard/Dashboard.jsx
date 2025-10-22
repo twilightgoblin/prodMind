@@ -29,7 +29,7 @@ const Dashboard = () => {
       title: 'Smart Scheduler',
       description: 'Intelligent task scheduling and time management',
       icon: Calendar,
-      path: '/scheduler',
+      path: '/smart-scheduler',
       color: 'green',
       features: ['AI scheduling', 'Priority optimization', 'Time blocking']
     },

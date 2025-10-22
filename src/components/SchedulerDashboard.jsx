@@ -1,10 +1,12 @@
 // Smart Scheduler Dashboard Component
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, TrendingUp, Settings, Play, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useScheduler } from '../hooks/useScheduler';
 import { useContent } from '../hooks/useContent';
 
 const SchedulerDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('today');
   const [showSettings, setShowSettings] = useState(false);
   
@@ -106,23 +108,37 @@ const SchedulerDashboard = () => {
             <span>Focus: {session.focusPrediction}/10</span>
           </div>
           
-          {status === 'upcoming' && (
-            <button
-              onClick={() => completeSession(session.id)}
-              className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-            >
-              Start
-            </button>
-          )}
-          
-          {status === 'active' && (
-            <button
-              onClick={() => completeSession(session.id, 8)}
-              className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-            >
-              Complete
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {session.content?.url && (
+              <a
+                href={session.content.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded text-xs hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center gap-1"
+              >
+                <Play size={12} />
+                Watch
+              </a>
+            )}
+            
+            {status === 'upcoming' && (
+              <button
+                onClick={() => completeSession(session.id)}
+                className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+              >
+                Start
+              </button>
+            )}
+            
+            {status === 'active' && (
+              <button
+                onClick={() => completeSession(session.id, 8)}
+                className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+              >
+                Complete
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -327,7 +343,7 @@ const SchedulerDashboard = () => {
                   <Calendar size={48} className="text-gray-500 mx-auto mb-4" />
                   <p className="text-gray-400">No sessions scheduled for today</p>
                   <button
-                    onClick={() => generateSchedule(content, 'week')}
+                    onClick={() => navigate('/dashboard/content')}
                     className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
                     Generate Schedule
