@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { Menu, X, ArrowRight, User, LogOut } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // 📝 each navItem points to an id on the page or route
 const navItems = [
@@ -14,6 +15,8 @@ const navItems = [
 
 export default function Header2() {
   const { isAuthenticated, user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -24,23 +27,35 @@ export default function Header2() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
 
-      // highlight active section
-      let current = "home";
-      navItems.forEach((item) => {
-        // Only check sections for hash links, not routes
-        if (!item.isRoute && item.href.startsWith('#')) {
-          const section = document.querySelector(item.href);
-          if (section && window.scrollY >= section.offsetTop - 100) {
-            current = section.id;
+      // Only highlight sections when on home page
+      if (location.pathname === '/') {
+        let current = "home";
+        navItems.forEach((item) => {
+          // Only check sections for hash links, not routes
+          if (!item.isRoute && item.href.startsWith('#')) {
+            const section = document.querySelector(item.href);
+            if (section && window.scrollY >= section.offsetTop - 100) {
+              current = section.id;
+            }
           }
-        }
-      });
-      setActiveId(current);
+        });
+        setActiveId(current);
+      }
     };
+
+    // Handle hash navigation when coming from other pages
+    if (location.pathname === '/' && location.hash) {
+      setTimeout(() => {
+        const element = document.querySelector(location.hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    }
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [location]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: -20 },
@@ -69,16 +84,23 @@ export default function Header2() {
     setIsMobileMenuOpen(false);
     
     if (isRoute) {
-      window.location.href = href;
+      navigate(href);
     } else {
-      document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+      // For hash links, check if we're on the home page
+      if (location.pathname !== '/') {
+        // Navigate to home page first, then scroll to section
+        navigate('/' + href);
+      } else {
+        // Already on home page, just scroll
+        document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
 
   const handleSignOut = () => {
     signOut();
     setShowUserMenu(false);
-    window.location.href = '/';
+    navigate('/');
   };
 
   return (
@@ -112,7 +134,7 @@ export default function Header2() {
                     href={item.href}
                     onClick={(e) => handleNavClick(e, item.href, item.isRoute)}
                     className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                      activeId === item.href.slice(1) || (item.isRoute && window.location.pathname === item.href)
+                      activeId === item.href.slice(1) || (item.isRoute && location.pathname === item.href)
                         ? "text-white"
                         : "text-gray-400 hover:text-white"
                     }`}
@@ -157,12 +179,15 @@ export default function Header2() {
                         exit={{ opacity: 0, y: 10 }}
                         className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-2"
                       >
-                        <a
-                          href="/dashboard"
-                          className="block px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                        <button
+                          onClick={() => {
+                            navigate('/dashboard');
+                            setShowUserMenu(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
                         >
                           Dashboard
-                        </a>
+                        </button>
                         <button
                           onClick={handleSignOut}
                           className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
@@ -176,20 +201,20 @@ export default function Header2() {
                 </div>
               ) : (
                 <>
-                  <a
-                    href="/signin"
+                  <button
+                    onClick={() => navigate('/signin')}
                     className="text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors duration-200"
                   >
                     Sign In
-                  </a>
+                  </button>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <a
-                      href="/signup"
+                    <button
+                      onClick={() => navigate('/signup')}
                       className="bg-white hover:bg-gray-100 text-black inline-flex items-center space-x-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-all duration-200"
                     >
                       <span>Get Started</span>
                       <ArrowRight className="h-4 w-4" />
-                    </a>
+                    </button>
                   </motion.div>
                 </>
               )}
@@ -249,12 +274,15 @@ export default function Header2() {
                         </div>
                         <span className="text-white font-medium">{user?.firstName || 'User'}</span>
                       </div>
-                      <a
-                        href="/dashboard"
+                      <button
+                        onClick={() => {
+                          navigate('/dashboard');
+                          setIsMobileMenuOpen(false);
+                        }}
                         className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
                       >
                         Dashboard
-                      </a>
+                      </button>
                       <button
                         onClick={handleSignOut}
                         className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
@@ -264,18 +292,24 @@ export default function Header2() {
                     </>
                   ) : (
                     <>
-                      <a
-                        href="/signin"
+                      <button
+                        onClick={() => {
+                          navigate('/signin');
+                          setIsMobileMenuOpen(false);
+                        }}
                         className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
                       >
                         Sign In
-                      </a>
-                      <a
-                        href="/signup"
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/signup');
+                          setIsMobileMenuOpen(false);
+                        }}
                         className="bg-white hover:bg-gray-100 text-black block w-full rounded-lg py-3 text-center font-medium transition-all duration-200"
                       >
                         Get Started
-                      </a>
+                      </button>
                     </>
                   )}
                 </motion.div>
