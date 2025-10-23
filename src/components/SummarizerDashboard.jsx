@@ -146,6 +146,8 @@ const SummarizerDashboard = () => {
   const handleDeleteSummary = async (summaryId) => {
     try {
       await deleteSummary(summaryId);
+      // Refresh the summaries list after deletion
+      await loadSummaries();
     } catch (error) {
       console.error('Error deleting summary:', error);
     }
@@ -837,7 +839,7 @@ const SummarizerDashboard = () => {
             <div className="space-y-6">
               {filteredSummaries.map(summary => (
                 <SummaryCard
-                  key={summary.id}
+                  key={summary._id || summary.id}
                   summary={summary}
                   onRate={rateSummary}
                   onAddNotes={addNotes}

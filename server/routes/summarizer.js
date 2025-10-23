@@ -1,5 +1,6 @@
 import express from 'express';
 import fetch from 'node-fetch';
+import mongoose from 'mongoose';
 import Summary from '../models/Summary.js';
 import Content from '../models/Content.js';
 import aiService from '../services/aiService.js';
@@ -139,7 +140,20 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const userId = req.user._id;
-    const summary = await Summary.findOneAndDelete({ _id: req.params.id, userId });
+    const summaryId = req.params.id;
+    
+    // Try to find by MongoDB _id first, then by contentId if that fails
+    let summary = null;
+    
+    // Check if it's a valid MongoDB ObjectId
+    if (mongoose.Types.ObjectId.isValid(summaryId)) {
+      summary = await Summary.findOneAndDelete({ _id: summaryId, userId });
+    }
+    
+    // If not found by _id, try by contentId
+    if (!summary) {
+      summary = await Summary.findOneAndDelete({ contentId: summaryId, userId });
+    }
 
     if (!summary) {
       return res.status(404).json({ error: 'Summary not found' });

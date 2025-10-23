@@ -66,7 +66,8 @@ const SummaryCard = ({ summary, onUpdateSummary, onRate, onAddNotes, onDelete })
 
   const handleDelete = () => {
     if (onDelete) {
-      onDelete(summary.contentId || summary.id);
+      // Use MongoDB _id for deletion, fallback to contentId for local storage
+      onDelete(summary._id || summary.contentId || summary.id);
     }
     setShowDeleteConfirm(false);
   };
