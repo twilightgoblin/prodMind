@@ -2,15 +2,9 @@ import {
   Mail,
   MapPin,
   Phone,
-  ExternalLink,
-  MessageCircle,
-  Users,
-  Code,
-  Palette,
   Shield,
   Globe,
   Zap,
-  Clock,
   ArrowRight,
 } from "lucide-react";
 
@@ -41,10 +35,9 @@ const data = {
     security: "/security",
   },
   contact: {
-    email: "contact@productivecontent.com",
-    phone: "+1 (555) 123-4567",
-    address: "San Francisco, CA, United States",
-    businessHours: "Mon-Fri 9AM-6PM PST",
+    email: "alesanjay15@gmail.com",
+    phone: "+91 6364039992",
+    address: "Town Hall, Chikkaballapura",
   },
   company: {
     name: "Productive Content",
@@ -53,26 +46,18 @@ const data = {
   },
 };
 
-const socialLinks = [
-  { icon: MessageCircle, label: "Facebook", href: data.facebookLink },
-  { icon: Users, label: "Instagram", href: data.instaLink },
-  { icon: ExternalLink, label: "Twitter", href: data.twitterLink },
-  { icon: Code, label: "GitHub", href: data.githubLink },
-  { icon: Palette, label: "Dribbble", href: data.dribbbleLink },
-];
+
 
 const aboutLinks = [
-  { text: "About Us", href: data.about.history },
-  { text: "Meet the Team", href: data.about.team },
-  { text: "Handbook", href: data.about.handbook },
-  { text: "Careers", href: data.about.careers },
+  { text: "Features", href: "#features" },
+  { text: "About Us", href: "#aboutus" },
 ];
 
 const serviceLinks = [
-  { text: "AI Agent", href: data.services.ai },
-  { text: "Analytics", href: data.services.analytics },
-  { text: "Productivity Tools", href: data.services.productivity },
-  { text: "Integration", href: data.services.integration },
+  { text: "Content", href: "/dashboard/content" },
+  { text: "Scheduler", href: "/smart-scheduler" },
+  { text: "Summarizer", href: "/summarizer" },
+  { text: "Notes", href: "/notes" },
 ];
 
 const helpfulLinks = [
@@ -91,21 +76,21 @@ const legalLinks = [
 ];
 
 const contactInfo = [
-  { 
-    icon: Mail, 
-    text: data.contact.email, 
+  {
+    icon: Mail,
+    text: data.contact.email,
     href: `mailto:${data.contact.email}`,
     label: "Email us"
   },
-  { 
-    icon: Phone, 
-    text: data.contact.phone, 
+  {
+    icon: Phone,
+    text: data.contact.phone,
     href: `tel:${data.contact.phone.replace(/\s/g, '')}`,
     label: "Call us"
   },
-  { 
-    icon: MapPin, 
-    text: data.contact.address, 
+  {
+    icon: MapPin,
+    text: data.contact.address,
     isAddress: true,
     label: "Visit us"
   },
@@ -118,7 +103,7 @@ export default function Footer4Col() {
     <footer
       id="footer"
       className="bg-black w-full place-self-end border-t border-gray-800"
->
+    >
       <div className="mx-auto max-w-screen-xl px-4 pt-16 pb-8 sm:px-6 lg:px-8">
 
 
@@ -155,46 +140,23 @@ export default function Footer4Col() {
                     )}
                   </a>
                 ))}
-                <div className="flex items-center gap-3 text-gray-400">
-                  <Clock className="size-5 text-purple-400" />
-                  <span className="flex items-center gap-2">
-                    {data.contact.businessHours}
-                    <div className="size-2 bg-green-500 rounded-full animate-pulse"></div>
-                  </span>
-                </div>
+
               </div>
             </div>
 
-            {/* Social Links */}
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-4">Follow Us</h4>
-              <div className="flex gap-4">
-                {socialLinks.map(({ icon: Icon, label, href }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:border-purple-500/50 hover:bg-gray-700 transition-all duration-200"
-                  >
-                    <span className="sr-only">{label}</span>
-                    <Icon className="size-5" />
-                  </a>
-                ))}
-              </div>
-            </div>
+
           </div>
 
           {/* Links Sections */}
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 lg:col-span-3">
-            {/* Company */}
+            {/* Features & About */}
             <div>
-              <h4 className="text-lg font-semibold text-white mb-6">Company</h4>
+              <h4 className="text-lg font-semibold text-white mb-6">Features</h4>
               <ul className="space-y-3">
                 {aboutLinks.map(({ text, href }) => (
                   <li key={text}>
-                    <a 
-                      className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group" 
+                    <a
+                      className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
                       href={href}
                     >
                       <ArrowRight className="size-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -211,11 +173,11 @@ export default function Footer4Col() {
               <ul className="space-y-3">
                 {serviceLinks.map(({ text, href }) => (
                   <li key={text}>
-                    <a 
-                      className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group" 
+                    <a
+                      className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
                       href={href}
                     >
-                      <ArrowRight className="size-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                      <ArrowRight className="size-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-colors duration-200" />
                       {text}
                     </a>
                   </li>
@@ -244,14 +206,14 @@ export default function Footer4Col() {
                     </a>
                   </li>
                 ))}
-                
+
                 {/* Legal Links */}
                 <li className="pt-4 mt-4 border-t border-gray-800">
                   <div className="space-y-3">
                     {legalLinks.map(({ text, href }) => (
-                      <a 
+                      <a
                         key={text}
-                        className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group text-sm" 
+                        className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group text-sm"
                         href={href}
                       >
                         <ArrowRight className="size-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -277,8 +239,8 @@ export default function Footer4Col() {
                 <span className="text-sm text-gray-400">SOC 2 Compliant</span>
               </div>
             </div>
-            
-            <div className="flex items-center gap-6">
+
+q            <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <Zap className="size-4 text-yellow-500" />
                 <span className="text-sm text-gray-400">99.9% Uptime</span>

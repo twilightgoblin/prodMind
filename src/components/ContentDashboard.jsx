@@ -1,12 +1,16 @@
 // Main content dashboard component
-import { useState, useMemo } from 'react';
-import { RefreshCw, Filter, Search, BookOpen, Clock, TrendingUp } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { RefreshCw, Filter, Search, BookOpen, Clock, TrendingUp, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useContent } from '../hooks/useContent';
 import ContentCard from './ContentCard';
 import ScheduleModal from './ScheduleModal';
 
 
 const ContentDashboard = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState('all'); // all, consumed, pending
   const [sortBy, setSortBy] = useState('priority'); // priority, date, title
@@ -20,6 +24,13 @@ const ContentDashboard = () => {
   const [activeTab, setActiveTab] = useState('curated'); // curated, search, trending
   const [scheduleModal, setScheduleModal] = useState({ isOpen: false, content: null });
   const [scheduledItems, setScheduledItems] = useState(new Set());
+
+  // Redirect to sign in if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/signin');
+    }
+  }, [isAuthenticated, navigate]);
 
 
 
@@ -123,6 +134,36 @@ const ContentDashboard = () => {
   const closeScheduleModal = () => {
     setScheduleModal({ isOpen: false, content: null });
   };
+
+  // Show sign in required message if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-8 text-center">
+          <LogIn className="h-16 w-16 text-blue-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Sign In Required</h2>
+          <p className="text-gray-300 mb-6">
+            You need to sign in to access your smart scheduler and view your scheduled content.
+          </p>
+          <button
+            onClick={() => navigate('/signin')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            Sign In to Your Account
+          </button>
+          <p className="text-gray-400 text-sm mt-4">
+            Don't have an account?{' '}
+            <button
+              onClick={() => navigate('/signup')}
+              className="text-blue-400 hover:text-blue-300 underline"
+            >
+              Sign up here
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

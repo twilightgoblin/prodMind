@@ -1,5 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   BookOpen, 
   Calendar, 
@@ -12,10 +13,53 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  LogIn
 } from 'lucide-react';
 
 const Dashboard = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to sign in if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/signin');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Show sign in required message if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#060010] text-white pt-20 p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-8 text-center">
+            <LogIn className="h-16 w-16 text-blue-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-2">Sign In Required</h2>
+            <p className="text-gray-300 mb-6">
+              You need to sign in to access your personal dashboard and productivity tools.
+            </p>
+            <button
+              onClick={() => navigate('/signin')}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Sign In to Your Account
+            </button>
+            <p className="text-gray-400 text-sm mt-4">
+              Don't have an account?{' '}
+              <button
+                onClick={() => navigate('/signup')}
+                className="text-blue-400 hover:text-blue-300 underline"
+              >
+                Sign up here
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const modules = [
     {
       id: 'content',

@@ -9,7 +9,6 @@ const navItems = [
   { name: "Home", href: "#home" },
   { name: "Features", href: "#features" },
   { name: "About Us", href: "#aboutus" },
-  { name: "Dashboard", href: "/dashboard", isRoute: true },
   { name: "Contact", href: "#footer" },
 ];
 
@@ -189,6 +188,15 @@ export default function Header2() {
                           Dashboard
                         </button>
                         <button
+                          onClick={() => {
+                            navigate('/dashboard/content');
+                            setShowUserMenu(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                        >
+                          Content Intelligence
+                        </button>
+                        <button
                           onClick={handleSignOut}
                           className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
                         >
@@ -282,6 +290,15 @@ export default function Header2() {
                         className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
                       >
                         Dashboard
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/dashboard/content');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
+                      >
+                        Content Intelligence
                       </button>
                       <button
                         onClick={handleSignOut}

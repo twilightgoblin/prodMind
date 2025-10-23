@@ -260,14 +260,7 @@ const SmartScheduler = () => {
                     Sign up here
                   </Link>
                 </p>
-                <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <h3 className="text-sm font-medium text-white mb-2">Test Account</h3>
-                  <p className="text-xs text-gray-400 mb-2">You can use these credentials to test the scheduler:</p>
-                  <div className="text-xs text-gray-300 space-y-1">
-                    <div><strong>Email:</strong> test@example.com</div>
-                    <div><strong>Password:</strong> TestPass123!</div>
-                  </div>
-                </div>
+
               </div>
             </div>
           </div>
