@@ -6,7 +6,7 @@ import api from './api.js';
 
 class ContentService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
     console.log('Content Service initialized with API base URL:', this.baseURL);
   }
 
@@ -34,7 +34,7 @@ class ContentService {
       
       // Fallback to backend if direct API fails
       try {
-        const response = await fetch(`${this.baseURL}/content/youtube/search`, {
+        const response = await fetch(`${this.baseURL}/api/content/youtube/search`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ class ContentService {
       
       // Fallback to backend
       try {
-        const response = await fetch(`${this.baseURL}/content/youtube/channel`, {
+        const response = await fetch(`${this.baseURL}/api/content/youtube/channel`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ class ContentService {
       // Fallback to backend
       try {
         const response = await fetch(
-          `${this.baseURL}/content/youtube/trending?maxResults=${maxResults}&categoryId=${categoryId}`
+          `${this.baseURL}/api/content/youtube/trending?maxResults=${maxResults}&categoryId=${categoryId}`
         );
 
         if (!response.ok) {
@@ -135,7 +135,7 @@ class ContentService {
   // Analyze content using AI (summarization, tagging, priority scoring)
   async analyzeContent(content) {
     try {
-      const response = await fetch(`${this.baseURL}/content/analyze`, {
+      const response = await fetch(`${this.baseURL}/api/content/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,7 +207,7 @@ class ContentService {
   // Save content to user's collection
   async saveContent(content) {
     try {
-      const response = await fetch(`${this.baseURL}/content`, {
+      const response = await fetch(`${this.baseURL}/api/content`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ class ContentService {
   async getSavedContent(filters = {}) {
     try {
       const queryParams = new URLSearchParams(filters).toString();
-      const response = await fetch(`${this.baseURL}/content?${queryParams}`, {
+      const response = await fetch(`${this.baseURL}/api/content?${queryParams}`, {
         headers: {
           'x-user-id': 'default'
         }
@@ -253,7 +253,7 @@ class ContentService {
   // Update content
   async updateContent(id, updates) {
     try {
-      const response = await fetch(`${this.baseURL}/content/${id}`, {
+      const response = await fetch(`${this.baseURL}/api/content/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -277,7 +277,7 @@ class ContentService {
   // Delete content
   async deleteContent(id) {
     try {
-      const response = await fetch(`${this.baseURL}/content/${id}`, {
+      const response = await fetch(`${this.baseURL}/api/content/${id}`, {
         method: 'DELETE',
         headers: {
           'x-user-id': 'default'

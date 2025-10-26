@@ -413,7 +413,6 @@ const SummarizerDashboard = () => {
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   Generating...
                 </>
               ) : (
@@ -501,8 +500,7 @@ const SummarizerDashboard = () => {
         
         {loadingVideos ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
-            <span className="ml-2 text-gray-400">Loading completed videos...</span>
+            <span className="text-gray-400">Loading completed videos...</span>
           </div>
         ) : completedVideos.length > 0 ? (
           <div className="grid gap-4">
@@ -610,8 +608,7 @@ const SummarizerDashboard = () => {
           {/* Search Results */}
           {searchingTopics && (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-400"></div>
-              <span className="ml-2 text-gray-400">Searching for learning resources...</span>
+              <span className="text-gray-400">Searching for learning resources...</span>
             </div>
           )}
 
@@ -831,7 +828,6 @@ const SummarizerDashboard = () => {
           {loading && filteredSummaries.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
                 <p className="text-gray-400">Generating summary...</p>
               </div>
             </div>

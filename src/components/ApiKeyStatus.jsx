@@ -40,7 +40,6 @@ const ApiKeyStatus = () => {
         <div className="flex items-center gap-2 mb-4">
           <Key className="text-blue-400" size={20} />
           <h3 className="text-lg font-semibold text-white">API Key Status</h3>
-          <RefreshCw className="animate-spin text-blue-400" size={16} />
         </div>
         <p className="text-gray-400">Loading API key status...</p>
       </div>

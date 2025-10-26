@@ -1,7 +1,7 @@
 import portDetector from './portDetection.js';
 
 // API utility for making authenticated requests
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
 
 class ApiClient {
   constructor() {
@@ -14,7 +14,7 @@ class ApiClient {
     if (!this.portDetected) {
       try {
         await portDetector.detectAvailablePort();
-        this.baseURL = portDetector.getBaseURL();
+        this.baseURL = portDetector.getBaseURL().replace('/api', '');
         this.portDetected = true;
         console.log(`🔗 API Client initialized with: ${this.baseURL}`);
       } catch (error) {

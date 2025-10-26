@@ -189,12 +189,30 @@ export default function Header2() {
                         </button>
                         <button
                           onClick={() => {
+                            navigate('/dashboard/analytics');
+                            setShowUserMenu(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                        >
+                          User Analytics
+                        </button>
+                        <button
+                          onClick={() => {
                             navigate('/dashboard/content');
                             setShowUserMenu(false);
                           }}
                           className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
                         >
                           Content Intelligence
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate('/real-video-test');
+                            setShowUserMenu(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                        >
+                          🎥 Real Video Test
                         </button>
                         <button
                           onClick={handleSignOut}
@@ -290,6 +308,15 @@ export default function Header2() {
                         className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
                       >
                         Dashboard
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/dashboard/analytics');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
+                      >
+                        User Analytics
                       </button>
                       <button
                         onClick={() => {

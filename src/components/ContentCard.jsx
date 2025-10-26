@@ -4,7 +4,16 @@ import { Play, Clock, Tag, Star, ExternalLink, Check, Eye, ThumbsUp, MessageCirc
 import { Link } from 'react-router-dom';
 import { generateVideoPlayerUrl } from '../utils/videoUtils';
 
-const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, isScheduled = false }) => {
+const ContentCard = ({
+  content,
+  onMarkConsumed,
+  onUpdatePriority,
+  onSchedule,
+  isScheduled = false,
+  showRecommendationScore = false,
+  showReasons = false,
+  showTrendingBadge = false
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getDifficultyColor = (difficulty) => {
@@ -35,23 +44,36 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
     // Parse ISO 8601 duration (PT4M13S) to readable format
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return duration;
-    
+
     const hours = parseInt(match[1]) || 0;
     const minutes = parseInt(match[2]) || 0;
     const seconds = parseInt(match[3]) || 0;
-    
+
     if (hours > 0) return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className={`bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg shadow-md p-6 transition-all duration-200 hover:shadow-lg hover:border-gray-700 ${
-      content.consumed ? 'opacity-75 bg-gray-800/30' : ''
-    }`}>
+    <div className={`bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg shadow-md p-6 transition-all duration-200 hover:shadow-lg hover:border-gray-700 ${content.consumed ? 'opacity-75 bg-gray-800/30' : ''
+      } relative`}>
+
+      {/* Trending Badge */}
+      {showTrendingBadge && (
+        <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+          Trending
+        </div>
+      )}
+
+      {/* Recommendation Score */}
+      {showRecommendationScore && content.recommendationScore && (
+        <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+          {Math.round(content.recommendationScore * 100)}% match
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start gap-4 mb-4">
-        <img 
-          src={content.thumbnail} 
+        <img
+          src={content.thumbnail}
           alt={content.title}
           className="w-20 h-12 object-cover rounded"
         />
@@ -60,7 +82,7 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
             {content.title}
           </h3>
           <p className="text-sm text-gray-400 mb-2">{content.channelTitle}</p>
-          
+
           {/* Metadata */}
           <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
             {content.duration && (
@@ -111,7 +133,7 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
             {isExpanded ? content.summary : `${content.summary.slice(0, 120)}...`}
           </p>
           {content.summary.length > 120 && (
-            <button 
+            <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="text-blue-400 text-xs mt-1 hover:underline"
             >
@@ -125,7 +147,7 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
       {content.tags && content.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {content.tags.slice(0, 3).map((tag, index) => (
-            <span 
+            <span
               key={index}
               className="inline-flex items-center gap-1 px-2 py-1 bg-blue-900/30 text-blue-300 text-xs rounded-full"
             >
@@ -151,7 +173,7 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
             <Play size={14} />
             Watch
           </Link>
-          
+
           <a
             href={content.url}
             target="_blank"
@@ -161,16 +183,15 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
           >
             <ExternalLink size={14} />
           </a>
-          
+
           {/* Schedule Button */}
           <button
             onClick={() => onSchedule && onSchedule(content)}
             disabled={isScheduled}
-            className={`inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
-              isScheduled
-                ? 'bg-green-900/30 text-green-300 cursor-not-allowed'
-                : 'bg-purple-600 text-white hover:bg-purple-700'
-            }`}
+            className={`inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${isScheduled
+              ? 'bg-green-900/30 text-green-300 cursor-not-allowed'
+              : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
           >
             {isScheduled ? (
               <>
@@ -184,8 +205,8 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
               </>
             )}
           </button>
-          
-          {!content.consumed && (
+
+          {!content.consumed && onMarkConsumed && (
             <button
               onClick={() => onMarkConsumed(content.id)}
               className="inline-flex items-center gap-2 px-3 py-2 bg-green-900/30 text-green-300 text-sm rounded-lg hover:bg-green-900/50 transition-colors"
@@ -198,21 +219,40 @@ const ContentCard = ({ content, onMarkConsumed, onUpdatePriority, onSchedule, is
 
         {/* Priority adjustment */}
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => onUpdatePriority(content.id, Math.max(1, content.priority - 1))}
-            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-300 rounded"
-          >
-            -
-          </button>
-          <span className="text-sm font-medium w-8 text-center text-white">{content.priority}</span>
-          <button
-            onClick={() => onUpdatePriority(content.id, Math.min(10, content.priority + 1))}
-            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-300 rounded"
-          >
-            +
-          </button>
+          {onUpdatePriority && (
+            <>
+              <button
+                onClick={() => onUpdatePriority(content.id, Math.max(1, content.priority - 1))}
+                className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-300 rounded"
+              >
+                -
+              </button>
+              <span className="text-sm font-medium w-8 text-center text-white">{content.priority}</span>
+              <button
+                onClick={() => onUpdatePriority(content.id, Math.min(10, content.priority + 1))}
+                className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-300 rounded"
+              >
+                +
+              </button>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Recommendation Reasons */}
+      {showReasons && content.reasons && content.reasons.length > 0 && (
+        <div className="mt-3 p-3 bg-blue-900/20 border border-blue-800/30 rounded-lg">
+          <h4 className="text-xs font-medium text-blue-300 mb-2">Why this is recommended:</h4>
+          <ul className="space-y-1">
+            {content.reasons.slice(0, 3).map((reason, index) => (
+              <li key={index} className="text-xs text-blue-200 flex items-start gap-2">
+                <div className="w-1 h-1 bg-blue-400 rounded-full mt-1.5 flex-shrink-0" />
+                {reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Consumed indicator */}
       {content.consumed && (

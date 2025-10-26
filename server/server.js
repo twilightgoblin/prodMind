@@ -12,6 +12,10 @@ import authRoutes from './routes/auth.js';
 import schedulerRoutes from './routes/scheduler.js';
 import apiKeysRoutes from './routes/apiKeys.js';
 import videoNotesRoutes from './routes/videoNotes.js';
+import recommendationRoutes from './routes/recommendations.js';
+import userProfileRoutes from './routes/userProfile.js';
+import analyticsRoutes from './routes/analytics.js';
+import testRoutes from './routes/test.js';
 
 // Import middleware
 import { logger, requestLogger } from './middleware/logger.js';
@@ -188,6 +192,10 @@ apiRouter.use('/auth', authRoutes);
 apiRouter.use('/scheduler', schedulerRoutes);
 apiRouter.use('/keys', apiKeysRoutes);
 apiRouter.use('/video-notes', videoNotesRoutes);
+apiRouter.use('/recommendations', recommendationRoutes);
+apiRouter.use('/user', userProfileRoutes);
+apiRouter.use('/analytics', analyticsRoutes);
+apiRouter.use('/test', testRoutes);
 
 // Mount API router
 app.use('/api', apiRouter);

@@ -59,7 +59,6 @@ const TodayWatchWidget = ({ onNavigateToScheduler }) => {
     return (
       <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
         <div className="flex items-center gap-2 text-gray-400">
-          <Clock size={16} className="animate-spin" />
           <span className="text-sm">Loading today's schedule...</span>
         </div>
       </div>

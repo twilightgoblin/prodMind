@@ -9,6 +9,12 @@ ProdMind is a comprehensive AI-powered productivity platform that revolutionizes
 
 ## 🌟 Key Features
 
+### 🎯 **PERSONALIZED AI AGENT**
+- **Semantic Recommendations**: AI-powered content matching using embedding-based similarity
+- **Learning Profile Intelligence**: Adaptive user profiling with interests, goals, and behavior analytics
+- **Personalized Dashboard**: AI-curated content recommendations and learning insights
+- **Adaptive Learning Paths**: Dynamic difficulty adjustment based on user progress and retention
+
 ### 🧠 Content Intelligence
 - **Smart Content Curation**: AI-powered content discovery from multiple sources
 - **Priority Scoring**: Intelligent ranking based on relevance and learning goals
@@ -33,6 +39,16 @@ ProdMind is a comprehensive AI-powered productivity platform that revolutionizes
 - **Centralized Management**: All learning notes in one searchable interface
 - **Progress Tracking**: Visual indicators of learning journey and milestones
 - **Quick Access**: Direct links back to source content from notes
+
+### 🎯 **PERSONALIZED AI AGENT FEATURES**
+- **Semantic Recommendations**: AI-powered content matching using embedding-based similarity
+- **Learning Profile Intelligence**: Adaptive user profiling with interests, goals, and behavior analytics
+- **Personalized Dashboard**: AI-curated content recommendations and learning insights
+- **User Embedding Generation**: Creates semantic profiles from learning interests and behavior
+- **Content Embedding System**: Generates embeddings for semantic content matching
+- **Cosine Similarity Matching**: Advanced mathematical content-user similarity scoring
+- **Behavioral Analytics**: Tracks completion rates, session duration, and learning velocity
+- **Adaptive Learning Paths**: Dynamic difficulty adjustment based on user progress and retention
 
 ## 🏗️ Architecture & Tech Stack
 
@@ -97,7 +113,7 @@ cp server/.env.example server/.env
 4. **Configure API Keys** (Edit `.env` and `server/.env`)
 ```bash
 # Frontend (.env)
-VITE_API_BASE_URL=http://localhost:5001/api
+VITE_API_BASE_URL=http://localhost:5001
 VITE_OPENAI_API_KEY=your_openai_api_key_here
 VITE_HUGGINGFACE_API_KEY=your_huggingface_token_here
 
@@ -476,6 +492,5 @@ node --version  # Should be 20+
 
 ---
 
-**Built with ❤️ by the ProdMind Team**
 
 *Transform your productivity journey with AI-powered insights and intelligent automation.*

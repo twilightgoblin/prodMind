@@ -3,7 +3,7 @@ import portDetector from '../utils/portDetection.js';
 // Centralized API service for backend communication
 class ApiService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
     this.userId = 'default'; // For future user authentication
     this.timeout = 30000; // 30 seconds
     this.retryAttempts = 3;
@@ -16,7 +16,7 @@ class ApiService {
     if (!this.portDetected) {
       try {
         await portDetector.detectAvailablePort();
-        this.baseURL = portDetector.getBaseURL();
+        this.baseURL = portDetector.getBaseURL().replace('/api', '');
         this.portDetected = true;
         console.log(`🔗 API Service initialized with: ${this.baseURL}`);
       } catch (error) {
@@ -30,7 +30,7 @@ class ApiService {
   async request(endpoint, options = {}, retryCount = 0) {
     // Ensure port detection is done
     await this.initialize();
-    const url = `${this.baseURL}${endpoint}`;
+    const url = `${this.baseURL}/api${endpoint}`;
     const config = {
       headers: {
         'Content-Type': 'application/json',

@@ -52,6 +52,60 @@ const userSchema = new mongoose.Schema({
       itemsPerPage: { type: Number, default: 12 }
     }
   },
+  learningProfile: {
+    interests: [{
+      topic: { type: String, required: true },
+      proficiency: { 
+        type: String, 
+        enum: ['beginner', 'intermediate', 'advanced'],
+        default: 'intermediate'
+      },
+      priority: { type: Number, min: 1, max: 10, default: 5 }
+    }],
+    learningGoals: [{
+      title: { type: String, required: true },
+      description: String,
+      targetDate: Date,
+      progress: { type: Number, min: 0, max: 100, default: 0 },
+      createdAt: { type: Date, default: Date.now }
+    }],
+    preferredContentTypes: [{
+      type: String,
+      enum: ['video', 'article', 'podcast', 'course']
+    }],
+    learningStyle: {
+      type: String,
+      enum: ['visual', 'auditory', 'kinesthetic', 'reading'],
+      default: 'visual'
+    },
+    availableTime: {
+      dailyMinutes: { type: Number, default: 60 },
+      preferredTimes: [{
+        type: String,
+        enum: ['morning', 'afternoon', 'evening']
+      }]
+    }
+  },
+  behaviorAnalytics: {
+    contentCompletionRate: { type: Number, default: 0, min: 0, max: 1 },
+    averageSessionDuration: { type: Number, default: 0 }, // in minutes
+    preferredContentDifficulty: { 
+      type: String, 
+      enum: ['beginner', 'intermediate', 'advanced'],
+      default: 'intermediate' 
+    },
+    mostActiveHours: [{ type: Number, min: 0, max: 23 }],
+    learningVelocity: { type: Number, default: 1, min: 0.1, max: 3 },
+    retentionRate: { type: Number, default: 0.8, min: 0, max: 1 },
+    totalContentConsumed: { type: Number, default: 0 },
+    averageRating: { type: Number, default: 0, min: 0, max: 5 },
+    lastAnalyticsUpdate: { type: Date, default: Date.now }
+  },
+  embedding: {
+    type: [Number],
+    default: null,
+    select: false // Don't include in regular queries for performance
+  },
   subscription: {
     plan: {
       type: String,

@@ -249,7 +249,6 @@ const ScheduleModal = ({ isOpen, onClose, content, onSchedule }) => {
             >
               {loading ? (
                 <>
-                  <Clock size={16} className="animate-spin" />
                   Scheduling...
                 </>
               ) : (

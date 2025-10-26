@@ -8,13 +8,25 @@ const router = express.Router();
 // Get all content
 router.get('/', async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, tags, priority } = req.query;
+    const { page = 1, limit = 10, status, tags, priority, source, difficulty, category } = req.query;
     const userId = req.headers['x-user-id'] || 'default';
 
-    const filter = { userId };
+    // For real YouTube content, don't filter by userId since it's global content
+    const filter = {};
+    if (source === 'youtube') {
+      // Get real YouTube content from database (seeded content)
+      filter.source = 'youtube';
+      filter.contentId = { $regex: /^yt_real_/ }; // Only real YouTube content
+    } else {
+      // Get user-specific content
+      filter.userId = userId;
+    }
+    
     if (status) filter.status = status;
     if (tags) filter.tags = { $in: tags.split(',') };
     if (priority) filter.priority = { $gte: parseInt(priority) };
+    if (difficulty) filter['metadata.difficulty'] = difficulty;
+    if (category) filter['metadata.category'] = category;
 
     const content = await Content.find(filter)
       .sort({ createdAt: -1 })
@@ -29,6 +41,42 @@ router.get('/', async (req, res) => {
       currentPage: page,
       total
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single content by ID or contentId
+router.get('/:id', async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] || 'default';
+    const { id } = req.params;
+    
+    let content;
+    
+    // Try to find by MongoDB _id first
+    try {
+      content = await Content.findOne({ _id: id, userId });
+    } catch (err) {
+      // If not a valid ObjectId, try contentId
+      content = null;
+    }
+    
+    // If not found by _id, try by contentId (for real YouTube content)
+    if (!content) {
+      content = await Content.findOne({ contentId: id });
+    }
+    
+    // If still not found and it looks like a real YouTube content ID, try with prefix
+    if (!content && !id.startsWith('yt_real_')) {
+      content = await Content.findOne({ contentId: `yt_real_${id}` });
+    }
+
+    if (!content) {
+      return res.status(404).json({ error: 'Content not found' });
+    }
+
+    res.json({ content });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

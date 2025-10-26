@@ -62,6 +62,20 @@ const Dashboard = () => {
 
   const modules = [
     {
+      id: 'analytics',
+      title: 'User Analytics',
+      description: 'Your comprehensive learning analytics and performance insights',
+      icon: Sparkles,
+      path: '/dashboard/analytics',
+      color: 'gradient',
+      features: [
+        'AI-curated content recommendations',
+        'Learning goals tracking and progress',
+        'Personalized skill development insights',
+        'Adaptive learning path suggestions'
+      ]
+    },
+    {
       id: 'content',
       title: 'Content Intelligence',
       description: 'AI-powered content curation and prioritization system',
@@ -121,6 +135,7 @@ const Dashboard = () => {
 
   const getColorClasses = (color) => {
     const colors = {
+      gradient: 'from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600',
       blue: 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
       green: 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
       purple: 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700',

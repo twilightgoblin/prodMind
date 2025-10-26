@@ -27,7 +27,7 @@ class PortDetector {
       const isAvailable = await this.testPort(parseInt(envPort));
       if (isAvailable) {
         this.detectedPort = parseInt(envPort);
-        this.baseURL = `http://localhost:${this.detectedPort}/api`;
+        this.baseURL = `http://localhost:${this.detectedPort}`;
         return this.detectedPort;
       }
     }
@@ -37,7 +37,7 @@ class PortDetector {
       const isAvailable = await this.testPort(port);
       if (isAvailable) {
         this.detectedPort = port;
-        this.baseURL = `http://localhost:${port}/api`;
+        this.baseURL = `http://localhost:${port}`;
         console.log(`✅ Detected API server on port ${port}`);
         return port;
       }
@@ -50,7 +50,7 @@ class PortDetector {
   getBaseURL() {
     if (!this.baseURL) {
       // Fallback to environment variable or default
-      return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+      return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
     }
     return this.baseURL;
   }

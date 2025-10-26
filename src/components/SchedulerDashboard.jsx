@@ -361,8 +361,7 @@ const SchedulerDashboard = () => {
               <h2 className="text-xl font-semibold text-white mb-4">Today's Schedule</h2>
               {loading ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
-                  <p className="text-gray-400 mt-2">Generating optimal schedule...</p>
+                  <p className="text-gray-400">Generating optimal schedule...</p>
                 </div>
               ) : todaysSchedule.length > 0 ? (
                 <div className="space-y-4">

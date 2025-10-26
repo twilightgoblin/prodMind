@@ -6,7 +6,10 @@ import Home from './pages/Home/Home';
 import FeaturesPage from './pages/Features/Features';
 import AboutUs from './pages/AboutUs/AboutUs';
 import Dashboard from './pages/Dashboard/Dashboard';
+import UserAnalytics from './components/UserAnalytics';
+import ProfileSetup from './pages/Profile/ProfileSetup';
 import ContentDashboard from './components/ContentDashboard';
+import Recommendations from './pages/Recommendations/Recommendations';
 
 import Summarizer from './pages/Summarizer/Summarizer';
 
@@ -14,6 +17,8 @@ import Summarizer from './pages/Summarizer/Summarizer';
 import SmartScheduler from './components/SmartScheduler';
 import VideoPlayer from './pages/VideoPlayer/VideoPlayer';
 import VideoNotes from './pages/VideoNotes/VideoNotes';
+import TestVideoPlayer from './pages/TestVideoPlayer';
+import RealVideoTest from './pages/RealVideoTest';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
 import AuthDemo from './pages/Auth/AuthDemo';
@@ -36,11 +41,14 @@ const App = () => {
           </div>
         } />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/analytics" element={<UserAnalytics />} />
+        <Route path="/profile" element={<ProfileSetup />} />
         <Route path="/dashboard/content" element={
           <div className="min-h-screen bg-[#060010] pt-20">
             <ContentDashboard />
           </div>
         } />
+        <Route path="/recommendations" element={<Recommendations />} />
 
         <Route path="/summarizer" element={<Summarizer />} />
 
@@ -50,7 +58,9 @@ const App = () => {
             <SmartScheduler />
           </div>
         } />
-        <Route path="/video/:videoId" element={<VideoPlayer />} />
+        <Route path="/video/:contentId" element={<VideoPlayer />} />
+        <Route path="/test-video" element={<TestVideoPlayer />} />
+        <Route path="/real-video-test" element={<RealVideoTest />} />
         <Route path="/notes" element={<VideoNotes />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />

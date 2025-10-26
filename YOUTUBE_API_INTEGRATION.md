@@ -97,7 +97,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 
 # Frontend (.env)
-VITE_API_BASE_URL=http://localhost:5001/api
+VITE_API_BASE_URL=http://localhost:5001
 ```
 
 ## 🧪 Testing
