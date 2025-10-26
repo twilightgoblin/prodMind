@@ -108,17 +108,28 @@ router.post('/quiz/generate', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const { contentId } = req.body;
 
+    console.log(`🎯 Quiz generation request - User: ${userId}, Content: ${contentId}`);
+
     if (!contentId) {
+      console.log('❌ Missing contentId in quiz generation request');
       return res.status(400).json({
         success: false,
         message: 'contentId is required'
       });
     }
 
+    console.log('🔄 Generating quiz...');
     const result = await userAnalyticsService.generatePostContentQuiz(userId, contentId);
+    
+    if (result.success) {
+      console.log(`✅ Quiz generated successfully: ${result.quiz.title} (${result.quiz.questions.length} questions)`);
+    } else {
+      console.log('❌ Quiz generation failed:', result.message);
+    }
+    
     res.json(result);
   } catch (error) {
-    console.error('Error generating quiz:', error);
+    console.error('❌ Error generating quiz:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to generate quiz',

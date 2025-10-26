@@ -205,15 +205,7 @@ export default function Header2() {
                         >
                           Content Intelligence
                         </button>
-                        <button
-                          onClick={() => {
-                            navigate('/real-video-test');
-                            setShowUserMenu(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
-                        >
-                          🎥 Real Video Test
-                        </button>
+
                         <button
                           onClick={handleSignOut}
                           className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors flex items-center gap-2"

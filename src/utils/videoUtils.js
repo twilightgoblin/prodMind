@@ -3,23 +3,48 @@
 export const generateVideoPlayerUrl = (videoData) => {
   // Extract video ID from YouTube URL or use contentId
   const getVideoId = (url) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+    if (!url) return null;
+    
+    let cleanUrl = url.trim();
+    if (cleanUrl.includes('%')) {
+      try {
+        cleanUrl = decodeURIComponent(cleanUrl);
+      } catch (e) {
+        // Use original URL if decoding fails
+      }
+    }
+    
+    const patterns = [
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+      /(?:https?:\/\/)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+      /^([a-zA-Z0-9_-]{11})$/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = cleanUrl.match(pattern);
+      if (match && match[1] && match[1].length === 11) {
+        return match[1];
+      }
+    }
+    
+    return null;
   };
 
-  const contentId = videoData.contentId || videoData.id || getVideoId(videoData.url) || 'unknown';
+  const extractedVideoId = getVideoId(videoData.url);
+  const contentId = videoData.contentId || videoData.id || extractedVideoId || 'unknown';
   
   // Create URL with video data as search params to avoid additional API calls
+  // URLSearchParams automatically handles encoding, so we don't need to manually encode
   const params = new URLSearchParams({
-    url: encodeURIComponent(videoData.url || ''),
-    title: encodeURIComponent(videoData.title || 'Unknown Title'),
-    channelTitle: encodeURIComponent(videoData.channelTitle || 'Unknown Channel')
+    url: videoData.url || '',
+    title: videoData.title || 'Unknown Title',
+    channelTitle: videoData.channelTitle || 'Unknown Channel'
   });
 
   // Add optional parameters if they exist
-  if (videoData.thumbnail) params.append('thumbnail', encodeURIComponent(videoData.thumbnail));
-  if (videoData.description) params.append('description', encodeURIComponent(videoData.description));
+  if (videoData.thumbnail) params.append('thumbnail', videoData.thumbnail);
+  if (videoData.description) params.append('description', videoData.description);
   if (videoData.duration) params.append('duration', videoData.duration);
   if (videoData.viewCount) params.append('views', videoData.viewCount);
   if (videoData.likeCount) params.append('likes', videoData.likeCount);

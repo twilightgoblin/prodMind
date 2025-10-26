@@ -17,8 +17,7 @@ import Summarizer from './pages/Summarizer/Summarizer';
 import SmartScheduler from './components/SmartScheduler';
 import VideoPlayer from './pages/VideoPlayer/VideoPlayer';
 import VideoNotes from './pages/VideoNotes/VideoNotes';
-import TestVideoPlayer from './pages/TestVideoPlayer';
-import RealVideoTest from './pages/RealVideoTest';
+
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
 import AuthDemo from './pages/Auth/AuthDemo';
@@ -59,8 +58,7 @@ const App = () => {
           </div>
         } />
         <Route path="/video/:contentId" element={<VideoPlayer />} />
-        <Route path="/test-video" element={<TestVideoPlayer />} />
-        <Route path="/real-video-test" element={<RealVideoTest />} />
+
         <Route path="/notes" element={<VideoNotes />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />

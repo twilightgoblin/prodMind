@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import VideoTracker from '../../components/VideoTracker';
+
 import SimpleVideoPlayer from '../../components/SimpleVideoPlayer';
 import PostVideoQuiz from '../../components/PostVideoQuiz';
-import { ArrowLeft, BookOpen, Clock, Star, Tag } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, Star, Tag, Save } from 'lucide-react';
+import apiClient from '../../utils/api.js';
 
 const VideoPlayer = () => {
   const { user } = useAuth();
@@ -16,6 +17,18 @@ const VideoPlayer = () => {
   const [quizResults, setQuizResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Notes state
+  const [notes, setNotes] = useState('');
+  const [savedNotes, setSavedNotes] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+
+  // Load existing notes when component mounts
+  useEffect(() => {
+    if (user && content?.contentId) {
+      loadExistingNotes();
+    }
+  }, [user, content?.contentId]);
 
   // Get video details from URL params or fetch from API
   useEffect(() => {
@@ -27,14 +40,16 @@ const VideoPlayer = () => {
 
     if (videoUrl && title) {
       // Use URL params if available
-      setContent({
+      const videoContent = {
         contentId: contentId || extractVideoId(videoUrl),
         url: videoUrl,
-        title: decodeURIComponent(title),
-        thumbnail: thumbnail ? decodeURIComponent(thumbnail) : null,
-        channelTitle: channelTitle ? decodeURIComponent(channelTitle) : null,
-        description: description ? decodeURIComponent(description) : null
-      });
+        title: title,
+        thumbnail: thumbnail || null,
+        channelTitle: channelTitle || null,
+        description: description || null
+      };
+      
+      setContent(videoContent);
       setLoading(false);
     } else if (contentId) {
       // Fetch content details from API
@@ -45,17 +60,111 @@ const VideoPlayer = () => {
     }
   }, [contentId, searchParams]);
 
+  const loadExistingNotes = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+
+      await apiClient.initialize();
+      
+      const response = await fetch(`${apiClient.baseURL}/api/video-notes/${content.contentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setNotes(data.data.notes || '');
+          setSavedNotes(data.data.notes || '');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading notes:', error);
+    }
+  };
+
+  const saveNotes = async () => {
+    if (!user || !content?.contentId) return;
+    
+    setSavingNotes(true);
+    try {
+      await apiClient.initialize();
+      
+      const response = await fetch(`${apiClient.baseURL}/api/video-notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          videoId: content.contentId,
+          videoUrl: content.url,
+          title: content.title,
+          notes: notes
+        })
+      });
+
+      if (response.ok) {
+        setSavedNotes(notes);
+        // Show success notification
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        notification.textContent = 'Notes saved successfully!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error saving notes:', error);
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
   const extractVideoId = (url) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+    if (!url) return null;
+    
+    let cleanUrl = url.trim();
+    if (cleanUrl.includes('%')) {
+      try {
+        cleanUrl = decodeURIComponent(cleanUrl);
+      } catch (e) {
+        // Use original URL if decoding fails
+      }
+    }
+    
+    const patterns = [
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+      /(?:https?:\/\/)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+      /^([a-zA-Z0-9_-]{11})$/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = cleanUrl.match(pattern);
+      if (match && match[1] && match[1].length === 11) {
+        return match[1];
+      }
+    }
+    
+    return null;
   };
 
   const fetchContentDetails = async (id) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`/api/content/${id}`, {
+      
+      // Use dynamic port detection
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+      
+      const response = await fetch(`${baseURL}/api/content/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -108,7 +217,6 @@ const VideoPlayer = () => {
   };
 
   const handleWatchComplete = (watchData) => {
-    console.log('Watch completed:', watchData);
     // Could trigger additional actions here
   };
 
@@ -200,10 +308,10 @@ const VideoPlayer = () => {
           <h1 className="text-2xl font-bold text-white">Video Player</h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Video Area */}
+        {/* Main Content Area - Video and Notes */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Video Player Area - Larger */}
           <div className="lg:col-span-2">
-            {/* Video Player with Tracking */}
             <div className="mb-6">
               <SimpleVideoPlayer
                 contentId={content.contentId}
@@ -249,9 +357,56 @@ const VideoPlayer = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Quiz Status */}
+          {/* Notes Section - Right Side - Larger */}
+          <div className="lg:col-span-1">
+            {user ? (
+              <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-6 sticky top-24">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    Learning Notes
+                  </h3>
+                  <button
+                    onClick={saveNotes}
+                    disabled={savingNotes || notes === savedNotes}
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                  >
+                    <Save className="w-4 h-4" />
+                    {savingNotes ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+                
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Take notes while watching the video..."
+                  className="w-full h-[500px] bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none resize-none text-sm"
+                />
+                
+                {notes !== savedNotes && (
+                  <p className="text-yellow-400 text-xs mt-2">You have unsaved changes</p>
+                )}
+              </div>
+            ) : (
+              <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-6 text-center sticky top-24">
+                <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">Take Notes</h3>
+                <p className="text-gray-400 mb-4 text-sm">Sign in to take notes while watching videos</p>
+                <button
+                  onClick={() => window.location.href = '/signin'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Sign In
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom Section - Learning Assessment and Tips */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Learning Assessment */}
+          <div className="lg:col-span-1">
             <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <BookOpen className="w-5 h-5" />
@@ -308,8 +463,10 @@ const VideoPlayer = () => {
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Learning Tips */}
+          {/* Learning Tips */}
+          <div className="lg:col-span-1">
             <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Learning Tips</h3>
               <ul className="space-y-3 text-sm text-gray-300">
@@ -331,8 +488,10 @@ const VideoPlayer = () => {
                 </li>
               </ul>
             </div>
+          </div>
 
-            {/* Video Stats */}
+          {/* Video Stats */}
+          <div className="lg:col-span-1">
             {content.metadata && (
               <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Video Details</h3>

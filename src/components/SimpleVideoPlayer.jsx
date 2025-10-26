@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Play, ExternalLink, Clock, CheckCircle, Calendar, BookOpen, Save } from 'lucide-react';
+import { Play, Clock, CheckCircle, Calendar, BookOpen, Save } from 'lucide-react';
 import ScheduleModal from './ScheduleModal';
+import apiClient from '../utils/api.js';
 
 const SimpleVideoPlayer = ({ 
   contentId, 
@@ -9,7 +10,13 @@ const SimpleVideoPlayer = ({
   title,
   thumbnail,
   onQuizAvailable, 
-  onWatchComplete 
+  onWatchComplete,
+  // Notes functionality
+  notes,
+  onNotesChange,
+  onSaveNotes,
+  savingNotes,
+  hasUnsavedNotes
 }) => {
   const { user } = useAuth();
   const [watchStarted, setWatchStarted] = useState(false);
@@ -17,20 +24,13 @@ const SimpleVideoPlayer = ({
   const [isCompleted, setIsCompleted] = useState(false);
   const [quizGenerated, setQuizGenerated] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [savedNotes, setSavedNotes] = useState('');
-  const [savingNotes, setSavingNotes] = useState(false);
+
   const [showEmbeddedPlayer, setShowEmbeddedPlayer] = useState(false);
   const [timerActive, setTimerActive] = useState(false);
   const playerRef = useRef(null);
   const timerRef = useRef(null);
 
-  // Load existing notes when component mounts
-  useEffect(() => {
-    if (user && contentId) {
-      loadExistingNotes();
-    }
-  }, [user, contentId]);
+
 
   // Timer effect - only runs when explicitly activated
   useEffect(() => {
@@ -38,6 +38,12 @@ const SimpleVideoPlayer = ({
       timerRef.current = setInterval(() => {
         setWatchTime(prev => {
           const newTime = prev + 1;
+          
+          // Generate quiz after 2 minutes of watching
+          if (newTime >= 120 && !quizGenerated && user) {
+            generateQuiz();
+            setQuizGenerated(true);
+          }
           
           // Simulate completion at 5 minutes for demo purposes
           if (newTime >= 300) {
@@ -76,20 +82,33 @@ const SimpleVideoPlayer = ({
   const extractVideoId = (url) => {
     if (!url) return null;
     
+    // Clean the URL - remove any extra whitespace and decode if needed
+    let cleanUrl = url.trim();
+    
+    // Try to decode if it looks encoded
+    if (cleanUrl.includes('%')) {
+      try {
+        cleanUrl = decodeURIComponent(cleanUrl);
+      } catch (e) {
+        // Use original URL if decoding fails
+      }
+    }
+    
     // Handle different YouTube URL formats
     const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^#&?]*)/,
-      /^([a-zA-Z0-9_-]{11})$/ // Direct video ID
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+      /(?:https?:\/\/)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+      /^([a-zA-Z0-9_-]{11})$/
     ];
     
     for (const pattern of patterns) {
-      const match = url.match(pattern);
+      const match = cleanUrl.match(pattern);
       if (match && match[1] && match[1].length === 11) {
         return match[1];
       }
     }
     
-    console.warn('Could not extract video ID from URL:', url);
     return null;
   };
 
@@ -97,79 +116,13 @@ const SimpleVideoPlayer = ({
     setWatchStarted(true);
     setShowEmbeddedPlayer(true);
     
-    // Timer will be started by iframe onLoad event
-    
     // Track interaction
     if (user && contentId) {
       trackInteraction('view', { started: true });
     }
   };
 
-  const loadExistingNotes = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) return;
 
-      const response = await fetch(`/api/video-notes/${contentId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          setNotes(data.data.notes || '');
-          setSavedNotes(data.data.notes || '');
-        }
-      } else if (response.status !== 404) {
-        // 404 is expected if no notes exist yet
-        console.warn('Failed to load notes:', response.status);
-      }
-    } catch (error) {
-      console.error('Error loading notes:', error);
-    }
-  };
-
-  const saveNotes = async () => {
-    if (!user || !contentId) return;
-    
-    setSavingNotes(true);
-    try {
-      const response = await fetch('/api/video-notes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: JSON.stringify({
-          videoId: contentId,
-          videoUrl: videoUrl,
-          title: title,
-          notes: notes
-        })
-      });
-
-      if (response.ok) {
-        setSavedNotes(notes);
-        // Show success notification
-        const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        notification.textContent = 'Notes saved successfully!';
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-          }
-        }, 3000);
-      }
-    } catch (error) {
-      console.error('Error saving notes:', error);
-    } finally {
-      setSavingNotes(false);
-    }
-  };
 
   const handleSchedule = () => {
     // Show success notification
@@ -227,7 +180,10 @@ const SimpleVideoPlayer = ({
         return;
       }
 
-      const response = await fetch('/api/analytics/track', {
+      // Initialize API client to ensure correct base URL
+      await apiClient.initialize();
+
+      const response = await fetch(`${apiClient.baseURL}/api/analytics/track`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -258,16 +214,26 @@ const SimpleVideoPlayer = ({
   };
 
   const generateQuiz = async () => {
-    if (!user) return; // Skip if user not authenticated
+    console.log('🎯 Attempting to generate quiz for contentId:', contentId);
+    
+    if (!user) {
+      console.warn('❌ No user authenticated, skipping quiz generation');
+      return;
+    }
     
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
-        console.warn('No auth token available for quiz generation');
+        console.warn('❌ No auth token available for quiz generation');
         return;
       }
 
-      const response = await fetch('/api/analytics/quiz/generate', {
+      console.log('🔄 Generating personalized quiz...');
+      
+      // Initialize API client to ensure correct base URL
+      await apiClient.initialize();
+
+      const response = await fetch(`${apiClient.baseURL}/api/analytics/quiz/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -280,12 +246,15 @@ const SimpleVideoPlayer = ({
       
       if (response.ok && result.success && result.quiz) {
         onQuizAvailable?.(result.quiz);
-        console.log('Quiz generated successfully');
+        console.log('✅ Quiz generated successfully:', result.quiz.title);
+        console.log(`📝 Generated ${result.quiz.questions.length} questions`);
       } else {
-        console.warn('Quiz generation failed:', result);
+        console.warn('❌ Quiz generation failed:', result);
+        console.log('no quiz generated');
       }
     } catch (error) {
-      console.error('Error generating quiz:', error);
+      console.error('❌ Error generating quiz:', error);
+      console.log('no quiz generated');
     }
   };
 
@@ -308,32 +277,26 @@ const SimpleVideoPlayer = ({
                 <iframe
                   ref={playerRef}
                   className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${videoId}?controls=1&rel=0&modestbranding=1&fs=1&enablejsapi=1`}
+                  src={`https://www.youtube.com/embed/${videoId}?controls=1&rel=0&modestbranding=1&fs=1`}
                   title={title}
                   style={{ border: 'none' }}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   onLoad={() => {
-                    console.log('YouTube iframe loaded successfully');
                     // Start timer after iframe loads
                     if (!timerActive && watchStarted) {
                       setTimeout(() => setTimerActive(true), 2000);
                     }
                   }}
-                  onError={(e) => {
-                    console.error('YouTube iframe failed to load:', e);
-                  }}
                 />
-                {/* Fallback link */}
-                <div className="absolute bottom-4 right-4">
-                  <a
-                    href={videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-gray-300 hover:text-white bg-black/70 px-2 py-1 rounded backdrop-blur-sm"
-                  >
-                    Open in YouTube
-                  </a>
+
+
+              </div>
+            ) : showEmbeddedPlayer && !videoId ? (
+              <div className="w-full h-full flex items-center justify-center bg-red-900/20 border border-red-800">
+                <div className="text-center text-red-300">
+                  <p className="mb-2">Unable to load video</p>
+                  <p className="text-sm">Could not extract video ID from URL</p>
                 </div>
               </div>
             ) : thumbnail ? (
@@ -383,6 +346,13 @@ const SimpleVideoPlayer = ({
                     Progress
                     {timerActive && (
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    )}
+                    {/* Debug info */}
+                    {watchTime >= 120 && !quizGenerated && (
+                      <span className="text-yellow-400 text-xs">(Quiz ready)</span>
+                    )}
+                    {quizGenerated && (
+                      <span className="text-green-400 text-xs">(Quiz generated)</span>
                     )}
                   </span>
                   <span>{formatTime(watchTime)} watched</span>
@@ -450,16 +420,24 @@ const SimpleVideoPlayer = ({
                   Schedule
                 </button>
                 
-                <a
-                  href={videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Open in YouTube
-                </a>
+
               </div>
+
+              {/* Debug: Manual Quiz Generation Button */}
+              {user && !quizGenerated && watchStarted && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => {
+                      console.log('🧪 Manual quiz generation triggered');
+                      generateQuiz();
+                      setQuizGenerated(true);
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  >
+                    🧪 Generate Quiz (Debug)
+                  </button>
+                </div>
+              )}
 
               {/* Quiz Status */}
               {isCompleted && (
@@ -487,36 +465,7 @@ const SimpleVideoPlayer = ({
         </div>
       </div>
 
-      {/* Notes Section */}
-      {user && (
-        <div className="bg-gray-900 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
-              Learning Notes
-            </h3>
-            <button
-              onClick={saveNotes}
-              disabled={savingNotes || notes === savedNotes}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Save className="w-4 h-4" />
-              {savingNotes ? 'Saving...' : 'Save Notes'}
-            </button>
-          </div>
-          
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Take notes while watching the video. Your notes will be saved automatically..."
-            className="w-full h-32 bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none resize-none"
-          />
-          
-          {notes !== savedNotes && (
-            <p className="text-yellow-400 text-sm mt-2">You have unsaved changes</p>
-          )}
-        </div>
-      )}
+
 
       {/* Schedule Modal */}
       <ScheduleModal

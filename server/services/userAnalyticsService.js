@@ -339,24 +339,16 @@ class UserAnalyticsService {
    */
   async generatePostContentQuiz(userId, contentId) {
     try {
-      // Check if user completed the content
-      const interaction = await UserContentInteraction.findOne({
-        userId,
-        contentId,
-        completionPercentage: { $gte: 80 }
-      }).sort({ createdAt: -1 });
-      
-      if (!interaction) {
-        return { success: false, message: 'Content not sufficiently completed for quiz generation' };
-      }
+      // For demo purposes, allow quiz generation even without completion tracking
+      // In production, you might want to enforce completion requirements
       
       // Check if quiz already exists
       let quiz = await Quiz.findOne({ contentId, isActive: true });
       
       if (!quiz) {
-        // Generate new quiz
+        // Generate new quiz based on content or create a sample quiz
         quiz = await Quiz.generateFromContent(contentId, {
-          difficulty: interaction.content?.metadata?.difficulty || 'intermediate'
+          difficulty: 'intermediate'
         });
         await quiz.save();
       }

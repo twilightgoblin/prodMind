@@ -30,11 +30,19 @@ const PostVideoQuiz = ({ quiz, contentId, onComplete, onClose }) => {
     const timeToComplete = Math.round((Date.now() - startTime) / 1000);
 
     try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        console.error('No authentication token found');
+        alert('Please sign in to submit the quiz');
+        setIsSubmitted(false);
+        return;
+      }
+
       const response = await fetch('/api/analytics/quiz/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           contentId,
@@ -44,6 +52,14 @@ const PostVideoQuiz = ({ quiz, contentId, onComplete, onClose }) => {
         })
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Quiz submission failed:', response.status, errorText);
+        alert(`Failed to submit quiz: ${response.status} ${response.statusText}`);
+        setIsSubmitted(false);
+        return;
+      }
+
       const result = await response.json();
       
       if (result.success) {
@@ -51,9 +67,13 @@ const PostVideoQuiz = ({ quiz, contentId, onComplete, onClose }) => {
         onComplete?.(result.results);
       } else {
         console.error('Failed to submit quiz:', result.message);
+        alert(`Failed to submit quiz: ${result.message}`);
+        setIsSubmitted(false);
       }
     } catch (error) {
       console.error('Error submitting quiz:', error);
+      alert('Network error while submitting quiz. Please try again.');
+      setIsSubmitted(false);
     }
   };
 
