@@ -20,7 +20,7 @@ const ScheduleModal = ({ isOpen, onClose, content, onSchedule }) => {
 
     try {
       const scheduleData = {
-        contentId: content.id,
+        contentId: content.contentId || content.id || content._id,
         title: content.title,
         description: content.description,
         thumbnail: content.thumbnail,
@@ -32,6 +32,9 @@ const ScheduleModal = ({ isOpen, onClose, content, onSchedule }) => {
         ...formData
       };
 
+      console.log('🔄 Scheduling content:', scheduleData);
+      console.log('🔗 API Client status:', apiClient.getStatus());
+      
       const scheduledContent = await apiClient.scheduleContent(scheduleData);
       onSchedule(scheduledContent);
       onClose();

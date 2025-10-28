@@ -8,11 +8,16 @@ const Summarizer = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to sign in if not authenticated
+  // Redirect to sign in if not authenticated (with delay to avoid race conditions)
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/signin');
-    }
+    const timer = setTimeout(() => {
+      if (!isAuthenticated) {
+        console.log('🔴 Summarizer: User not authenticated, redirecting to signin');
+        navigate('/signin');
+      }
+    }, 100); // Small delay to allow auth state to settle
+
+    return () => clearTimeout(timer);
   }, [isAuthenticated, navigate]);
 
   // Show sign in required message if not authenticated

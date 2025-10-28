@@ -13,11 +13,16 @@ const VideoNotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredNotes, setFilteredNotes] = useState([]);
 
-  // Redirect to sign in if not authenticated
+  // Redirect to sign in if not authenticated (with delay to avoid race conditions)
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/signin');
-    }
+    const timer = setTimeout(() => {
+      if (!isAuthenticated) {
+        console.log('🔴 VideoNotes: User not authenticated, redirecting to signin');
+        navigate('/signin');
+      }
+    }, 100); // Small delay to allow auth state to settle
+
+    return () => clearTimeout(timer);
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {

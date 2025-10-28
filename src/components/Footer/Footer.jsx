@@ -240,7 +240,7 @@ export default function Footer4Col() {
               </div>
             </div>
 
-q            <div className="flex items-center gap-6">
+            q            <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <Zap className="size-4 text-yellow-500" />
                 <span className="text-sm text-gray-400">99.9% Uptime</span>

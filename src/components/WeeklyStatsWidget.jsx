@@ -178,10 +178,13 @@ const WeeklyStatsWidget = ({ stats = {} }) => {
       {/* Quick Action */}
       <div className="mt-4">
         <button
-          onClick={() => window.location.href = '/video-notes'}
-          className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all text-sm font-medium"
+          onClick={() => {
+            console.log('Navigating to notes from weekly stats...');
+            window.location.href = '/notes';
+          }}
+          className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all text-sm font-medium hover:scale-105 transform duration-200"
         >
-          View All Learning Activity
+          📝 View All Learning Activity
         </button>
       </div>
     </div>

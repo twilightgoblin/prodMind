@@ -1,17 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 import ContentCard from './ContentCard';
 import LearningGoalsWidget from './LearningGoalsWidget';
 import SkillProgressWidget from './SkillProgressWidget';
+import ScheduleModal from './ScheduleModal';
 
 import WeeklyStatsWidget from './WeeklyStatsWidget';
 
 const UserAnalytics = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Debug authentication state
+  useEffect(() => {
+    console.log('🔍 UserAnalytics - Auth State:', {
+      user: !!user,
+      isAuthenticated,
+      token: !!localStorage.getItem('authToken')
+    });
+  }, [user, isAuthenticated]);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [scheduleModal, setScheduleModal] = useState({ isOpen: false, content: null });
+  const [scheduledItems, setScheduledItems] = useState(new Set());
 
   useEffect(() => {
     if (user?.id) {
@@ -22,11 +36,11 @@ const UserAnalytics = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Import the userProfileService dynamically to ensure port detection works
       const { default: userProfileService } = await import('../services/userProfileService.js');
       const data = await userProfileService.getDashboardData(user.id);
-      
+
       if (data.success) {
         setDashboardData(data.data);
       } else {
@@ -38,6 +52,20 @@ const UserAnalytics = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Schedule handlers
+  const handleScheduleClick = (content) => {
+    setScheduleModal({ isOpen: true, content });
+  };
+
+  const closeScheduleModal = () => {
+    setScheduleModal({ isOpen: false, content: null });
+  };
+
+  const handleScheduleSuccess = (scheduledContent) => {
+    setScheduledItems(prev => new Set([...prev, scheduledContent.contentId]));
+    closeScheduleModal();
   };
 
   if (loading) {
@@ -98,7 +126,7 @@ const UserAnalytics = () => {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-gray-400">Learning Streak</p>
@@ -114,10 +142,10 @@ const UserAnalytics = () => {
       {/* Main Analytics Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Left Column - Main Content */}
           <div className="lg:col-span-8 space-y-8">
-            
+
             {/* Learning Goals Tracker */}
             <div className="bg-black/40 backdrop-blur-sm rounded-xl border border-gray-800">
               <div className="p-6 border-b border-gray-800">
@@ -152,6 +180,8 @@ const UserAnalytics = () => {
                         content={content}
                         showRecommendationScore={true}
                         showReasons={true}
+                        onSchedule={handleScheduleClick}
+                        isScheduled={scheduledItems.has(content.contentId || content.id || content._id)}
                       />
                     ))}
                   </div>
@@ -197,6 +227,8 @@ const UserAnalytics = () => {
                         key={content.contentId || index}
                         content={content}
                         showTrendingBadge={true}
+                        onSchedule={handleScheduleClick}
+                        isScheduled={scheduledItems.has(content.contentId || content.id || content._id)}
                       />
                     ))}
                   </div>
@@ -211,7 +243,7 @@ const UserAnalytics = () => {
 
           {/* Right Column - Analytics Widgets */}
           <div className="lg:col-span-4 space-y-6">
-            
+
             {/* Weekly Stats */}
             <WeeklyStatsWidget stats={widgets.weeklyStats} />
 
@@ -227,53 +259,79 @@ const UserAnalytics = () => {
               </h3>
               <div className="space-y-3">
                 <button
-                  onClick={() => window.location.href = '/summarizer'}
-                  className="w-full text-left p-3 rounded-lg bg-blue-900/20 hover:bg-blue-900/30 transition-colors border border-blue-800/30"
+                  onClick={() => {
+                    console.log('🔵 Summarizer button clicked');
+                    console.log('User authenticated:', !!user);
+                    console.log('User data:', user);
+                    console.log('Auth token:', !!localStorage.getItem('authToken'));
+                    navigate('/summarizer');
+                  }}
+                  className="w-full text-left p-3 rounded-lg bg-blue-900/20 hover:bg-blue-900/30 transition-all duration-200 border border-blue-800/30 hover:border-blue-700/50 group"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <div>
-                      <p className="font-medium text-white">Summarize Content</p>
-                      <p className="text-sm text-gray-400">Get AI summaries</p>
+                    <div className="flex-1">
+                      <p className="font-medium text-white group-hover:text-blue-200 transition-colors">Summarize Content</p>
+                      <p className="text-sm text-gray-400">Get AI summaries of videos and articles</p>
                     </div>
+                    <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </button>
 
-                <button
-                  onClick={() => window.location.href = '/scheduler'}
-                  className="w-full text-left p-3 rounded-lg bg-green-900/20 hover:bg-green-900/30 transition-colors border border-green-800/30"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">Schedule Learning</p>
-                      <p className="text-sm text-gray-400">Plan your sessions</p>
-                    </div>
-                  </div>
-                </button>
 
                 <button
-                  onClick={() => window.location.href = '/profile'}
-                  className="w-full text-left p-3 rounded-lg bg-purple-900/20 hover:bg-purple-900/30 transition-colors border border-purple-800/30"
+                  onClick={() => {
+                    console.log('🟣 Profile button clicked');
+                    console.log('User authenticated:', !!user);
+                    console.log('User data:', user);
+                    navigate('/profile');
+                  }}
+                  className="w-full text-left p-3 rounded-lg bg-purple-900/20 hover:bg-purple-900/30 transition-all duration-200 border border-purple-800/30 hover:border-purple-700/50 group"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <div>
-                      <p className="font-medium text-white">Update Profile</p>
-                      <p className="text-sm text-gray-400">Improve recommendations</p>
+                    <div className="flex-1">
+                      <p className="font-medium text-white group-hover:text-purple-200 transition-colors">Update Profile</p>
+                      <p className="text-sm text-gray-400">Enhance your personalized recommendations</p>
                     </div>
+                    <svg className="w-4 h-4 text-gray-400 group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    console.log('🟠 Notes button clicked');
+                    console.log('User authenticated:', !!user);
+                    console.log('User data:', user);
+                    navigate('/notes');
+                  }}
+                  className="w-full text-left p-3 rounded-lg bg-orange-900/20 hover:bg-orange-900/30 transition-all duration-200 border border-orange-800/30 hover:border-orange-700/50 group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-white group-hover:text-orange-200 transition-colors">View Notes</p>
+                      <p className="text-sm text-gray-400">Access all your learning notes and annotations</p>
+                    </div>
+                    <svg className="w-4 h-4 text-gray-400 group-hover:text-orange-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </button>
               </div>
@@ -281,6 +339,14 @@ const UserAnalytics = () => {
           </div>
         </div>
       </div>
+
+      {/* Schedule Modal */}
+      <ScheduleModal
+        isOpen={scheduleModal.isOpen}
+        onClose={closeScheduleModal}
+        content={scheduleModal.content}
+        onSchedule={handleScheduleSuccess}
+      />
     </div>
   );
 };

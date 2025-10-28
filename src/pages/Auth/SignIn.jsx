@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   Eye, 
@@ -13,6 +13,7 @@ import LiquidEther from '../../components/ui/liquid-ether';
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -25,9 +26,12 @@ const SignIn = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      // Redirect to intended destination or dashboard
+      const from = location.state?.from?.pathname || '/dashboard';
+      console.log('🔵 SignIn: User authenticated, redirecting to:', from);
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location]);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -44,7 +48,10 @@ const SignIn = () => {
     const result = await signIn(formData.email, formData.password);
     
     if (result.success) {
-      navigate('/dashboard');
+      // Redirect to intended destination or dashboard
+      const from = location.state?.from?.pathname || '/dashboard';
+      console.log('🔵 SignIn: Sign in successful, redirecting to:', from);
+      navigate(from, { replace: true });
     } else {
       setError(result.error || 'Sign in failed');
     }

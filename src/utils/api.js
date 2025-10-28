@@ -23,9 +23,28 @@ class ApiClient {
         // Fallback to environment variable
         this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
         this.portDetected = true;
+        console.log(`🔗 API Client fallback URL: ${this.baseURL}`);
       }
     }
   }
+
+  // Force re-initialization (useful for debugging)
+  async reinitialize() {
+    this.portDetected = false;
+    portDetector.reset();
+    await this.initialize();
+  }
+
+  // Get current status (useful for debugging)
+  getStatus() {
+    return {
+      baseURL: this.baseURL,
+      portDetected: this.portDetected,
+      hasAuthToken: !!this.getAuthToken()
+    };
+  }
+
+
 
   // Get auth token from localStorage
   getAuthToken() {
@@ -51,11 +70,13 @@ class ApiClient {
   async request(endpoint, options = {}) {
     // Ensure port detection is done
     await this.initialize();
-    const url = `${this.baseURL}${endpoint}`;
+    const url = `${this.baseURL}/api${endpoint}`;
     const config = {
       headers: this.getHeaders(options.headers),
       ...options
     };
+
+    console.log(`🌐 API Request: ${options.method || 'GET'} ${url}`);
 
     try {
       const response = await fetch(url, config);

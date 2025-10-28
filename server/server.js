@@ -58,7 +58,7 @@ const corsOptions = {
   },
   // Make credentials configurable via env (defaults to true for browser apps)
   credentials: process.env.CORS_CREDENTIALS === 'true' ? true : true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
 };
 
