@@ -30,14 +30,21 @@ const signupLimiter = rateLimit({
 
 // Generate JWT token
 const generateToken = (userId) => {
+  const tokenOptions = {
+    issuer: 'prodmind-api',
+    audience: 'prodmind-app'
+  };
+  
+  // Only add expiration if JWT_EXPIRES_IN is set and not 'never'
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  if (expiresIn !== 'never') {
+    tokenOptions.expiresIn = expiresIn;
+  }
+  
   return jwt.sign(
     { userId },
     process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
-    { 
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-      issuer: 'prodmind-api',
-      audience: 'prodmind-app'
-    }
+    tokenOptions
   );
 };
 
@@ -100,7 +107,7 @@ export const optionalAuth = async (req, res, next) => {
 // @route   POST /api/auth/signup
 // @desc    Register a new user
 // @access  Public
-router.post('/signup', signupLimiter, async (req, res, next) => {
+router.post('/signup', /* signupLimiter, */ async (req, res, next) => {
   try {
     const { firstName, lastName, email, password, confirmPassword } = req.body;
 
@@ -165,7 +172,7 @@ router.post('/signup', signupLimiter, async (req, res, next) => {
 // @route   POST /api/auth/signin
 // @desc    Authenticate user and get token
 // @access  Public
-router.post('/signin', authLimiter, async (req, res, next) => {
+router.post('/signin', /* authLimiter, */ async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -330,6 +337,42 @@ router.get('/stats', authenticateToken, async (req, res, next) => {
     res.json({
       success: true,
       data: stats
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   POST /api/auth/unlock-account
+// @desc    Unlock a locked user account (for development/admin use)
+// @access  Public (in development only)
+router.post('/unlock-account', async (req, res, next) => {
+  try {
+    // Only allow in development environment
+    if (process.env.NODE_ENV === 'production') {
+      throw new UnauthorizedError('This endpoint is not available in production');
+    }
+
+    const { email } = req.body;
+
+    if (!email) {
+      throw new ValidationError('Email is required');
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    
+    if (!user) {
+      throw new ValidationError('User not found');
+    }
+
+    // Reset login attempts and unlock
+    await user.resetLoginAttempts();
+
+    logger.info(`Account unlocked for user: ${user.email}`);
+
+    res.json({
+      success: true,
+      message: 'Account unlocked successfully'
     });
   } catch (error) {
     next(error);

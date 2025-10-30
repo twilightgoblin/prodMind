@@ -9,7 +9,14 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react({
+        babel: {
+          plugins: [['styled-jsx/babel', { optimizeForSpeed: true }]]
+        }
+      }), 
+      tailwindcss()
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

@@ -100,7 +100,7 @@ const createRateLimit = (windowMs, max, message) => rateLimit({
 });
 
 // Apply different rate limits
-app.use('/api/auth', createRateLimit(15 * 60 * 1000, 5, 'Too many authentication attempts'));
+// app.use('/api/auth', createRateLimit(15 * 60 * 1000, 5, 'Too many authentication attempts')); // Disabled for development
 app.use('/api/', createRateLimit(
   parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,

@@ -152,6 +152,10 @@ class ApiClient {
     return this.post('/auth/signin', { email, password });
   }
 
+  async unlockAccount(email) {
+    return this.post('/auth/unlock-account', { email });
+  }
+
   async signOut() {
     return this.post('/auth/signout');
   }
