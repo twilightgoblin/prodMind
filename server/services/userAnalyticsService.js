@@ -345,7 +345,13 @@ class UserAnalyticsService {
       // Check if quiz already exists
       let quiz = await Quiz.findOne({ contentId, isActive: true });
       
-      if (!quiz) {
+      // Force regeneration if existing quiz has less than 10 questions (for the update)
+      if (!quiz || quiz.questions.length < 10) {
+        // Delete old quiz if it exists
+        if (quiz) {
+          await Quiz.deleteOne({ _id: quiz._id });
+        }
+        
         // Generate new quiz based on content or create a sample quiz
         quiz = await Quiz.generateFromContent(contentId, {
           difficulty: 'intermediate'
