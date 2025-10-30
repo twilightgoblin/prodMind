@@ -1,82 +1,70 @@
-# ProdMind - AI-Powered Productivity Suite
+# ProdMind - AI-Powered Learning & Content Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
 [![React Version](https://img.shields.io/badge/react-19.2.0-blue)](https://reactjs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green)](https://www.mongodb.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-8.0-green)](https://www.mongodb.com/)
 
-ProdMind is a comprehensive AI-powered productivity platform that revolutionizes how you learn, consume content, and manage tasks through intelligent automation and personalized insights. Built with modern web technologies and powered by advanced AI models, it transforms your productivity workflow into an efficient, data-driven experience.
+ProdMind is an intelligent learning platform that combines AI-powered content summarization, personalized recommendations, and smart scheduling to optimize your learning journey. Built with React 19, Node.js, and MongoDB, it features advanced AI integration with OpenAI and Hugging Face models for enhanced content processing and user analytics.
 
-## 🌟 Key Features
+## 🌟 Core Features
 
-### 🎯 **PERSONALIZED AI AGENT**
-- **Semantic Recommendations**: AI-powered content matching using embedding-based similarity
+### 🎯 **AI-Powered Personalization**
+- **Semantic Recommendations**: Content matching using embedding-based similarity algorithms
 - **Learning Profile Intelligence**: Adaptive user profiling with interests, goals, and behavior analytics
 - **Personalized Dashboard**: AI-curated content recommendations and learning insights
-- **Adaptive Learning Paths**: Dynamic difficulty adjustment based on user progress and retention
+- **User Analytics**: Comprehensive tracking of learning patterns and progress metrics
 
-### 🧠 Content Intelligence
-- **Smart Content Curation**: AI-powered content discovery from multiple sources
-- **Priority Scoring**: Intelligent ranking based on relevance and learning goals
-- **Topic Organization**: Automatic categorization and tagging
-- **Progress Analytics**: Detailed consumption tracking and insights
-
-### 📅 Smart Scheduler
-- **AI-Optimized Scheduling**: Intelligent task allocation based on priority and availability
-- **Calendar Integration**: Seamless synchronization with external calendars
-- **Conflict Resolution**: Automatic detection and resolution of scheduling conflicts
-- **Productivity Patterns**: Analysis of your most productive time periods
-
-### � Content Summarizer
-- **Multi-AI Provider Support**: OpenAI GPT models and Hugging Face alternatives
+### 🧠 **Content Intelligence**
+- **Multi-AI Summarization**: OpenAI GPT models with Hugging Face fallback support
 - **Three Summary Modes**: TL;DR (quick), Insight (balanced), Detailed (comprehensive)
-- **Video Note Integration**: Automatic summarization of completed videos with notes
-- **Topic Search**: AI-powered discovery of learning resources for any subject
-- **Educational Focus**: Summaries optimized for learning and knowledge retention
+- **YouTube Integration**: Direct video content processing and note-taking
+- **Smart Content Discovery**: AI-powered topic search and resource recommendations
 
-### 📚 Learning Notes
-- **Auto-Save Functionality**: Seamless note-taking while watching videos
-- **Centralized Management**: All learning notes in one searchable interface
-- **Progress Tracking**: Visual indicators of learning journey and milestones
-- **Quick Access**: Direct links back to source content from notes
+### 📚 **Learning Management**
+- **Video Notes System**: Auto-save note-taking with progress tracking
+- **Post-Video Quizzes**: Interactive learning reinforcement with AI-generated questions
+- **Progress Analytics**: Visual learning journey tracking and milestone indicators
+- **Content Scheduling**: Smart scheduling system for optimal learning sessions
 
-### 🎯 **PERSONALIZED AI AGENT FEATURES**
-- **Semantic Recommendations**: AI-powered content matching using embedding-based similarity
-- **Learning Profile Intelligence**: Adaptive user profiling with interests, goals, and behavior analytics
-- **Personalized Dashboard**: AI-curated content recommendations and learning insights
-- **User Embedding Generation**: Creates semantic profiles from learning interests and behavior
-- **Content Embedding System**: Generates embeddings for semantic content matching
-- **Cosine Similarity Matching**: Advanced mathematical content-user similarity scoring
-- **Behavioral Analytics**: Tracks completion rates, session duration, and learning velocity
-- **Adaptive Learning Paths**: Dynamic difficulty adjustment based on user progress and retention
+### 📊 **User Analytics & Insights**
+- **Behavioral Tracking**: Session duration, completion rates, and learning velocity
+- **Performance Metrics**: Detailed analytics dashboard with learning insights
+- **Goal Setting**: Personalized learning objectives with progress monitoring
+- **Skill Assessment**: AI-driven evaluation of learning progress and knowledge gaps
 
-## 🏗️ Architecture & Tech Stack
+## 🏗️ Technology Stack
 
 ### Frontend
 - **React 19.2.0** with modern hooks and concurrent features
-- **Vite 7.1.7** for lightning-fast development and optimized builds
+- **Vite 7.1.7** for fast development and optimized builds
 - **Tailwind CSS 4.1.14** for responsive, utility-first styling
 - **Framer Motion 12.23.22** for smooth animations and transitions
-- **Three.js & React Three Fiber** for 3D visualizations
+- **Three.js & React Three Fiber** for 3D visualizations and interactive elements
 - **React Router DOM 7.9.3** for client-side routing
 
 ### Backend
 - **Node.js 20+** with ES modules support
-- **Express.js 4.18.2** for robust API development
+- **Express.js 4.18.2** for robust REST API development
 - **MongoDB 8.0.3** with Mongoose ODM for data persistence
-- **JWT Authentication** with bcrypt password hashing
-- **Rate Limiting & Security** with Helmet and CORS protection
+- **JWT Authentication** with bcryptjs password hashing
+- **Rate Limiting & Security** with Helmet, CORS, and express-validator
 
-### AI & External Services
-- **OpenAI GPT Models** for premium AI summarization
-- **Hugging Face Transformers** for free AI alternatives
-- **YouTube Data API v3** for video content integration
-- **AssemblyAI** for audio transcription capabilities
+### AI & Machine Learning
+- **OpenAI API** (GPT models) for premium content summarization
+- **Hugging Face API** for free AI model alternatives
+- **Custom Embedding System** for semantic content matching
+- **Cosine Similarity Algorithm** for personalized recommendations
 
-### DevOps & Deployment
+### External Integrations
+- **YouTube Data API v3** for video content processing
+- **AssemblyAI** (optional) for audio transcription
+- **Google Custom Search** (optional) for content discovery
+
+### DevOps & Infrastructure
 - **Docker & Docker Compose** for containerized deployment
-- **Multi-stage builds** for optimized production images
-- **Health checks** and monitoring for all services
+- **MongoDB Atlas** for cloud database hosting
+- **Health monitoring** and logging for all services
 - **Redis** for caching and session management
 
 ## 🚀 Quick Start
@@ -105,20 +93,22 @@ cd server && npm install && cd ..
 
 3. **Environment Configuration**
 ```bash
-# Copy environment templates
+# Copy environment template for frontend
 cp .env.example .env
-cp server/.env.example server/.env
+
+# Backend environment is already configured with MongoDB Atlas
+# Edit server/.env if you need to change database or API keys
 ```
 
 4. **Configure API Keys** (Edit `.env` and `server/.env`)
 ```bash
-# Frontend (.env)
+# Frontend (.env) - Optional for enhanced features
 VITE_API_BASE_URL=http://localhost:5001
 VITE_OPENAI_API_KEY=your_openai_api_key_here
 VITE_HUGGINGFACE_API_KEY=your_huggingface_token_here
 
-# Backend (server/.env)
-MONGODB_URI=mongodb://localhost:27017/prodmind
+# Backend (server/.env) - Already configured with working database
+# Update these for production:
 JWT_SECRET=your_secure_jwt_secret_here
 OPENAI_API_KEY=your_openai_api_key_here
 YOUTUBE_API_KEY=your_youtube_api_key_here
@@ -126,10 +116,10 @@ YOUTUBE_API_KEY=your_youtube_api_key_here
 
 5. **Start Development Environment**
 ```bash
-# Option 1: Start both frontend and backend
+# Start both frontend and backend simultaneously
 npm run dev:full
 
-# Option 2: Start services separately
+# Or start services separately:
 npm run dev          # Frontend (http://localhost:5173)
 cd server && npm run dev  # Backend (http://localhost:5001)
 ```
@@ -142,117 +132,157 @@ For production deployment with Docker:
 # Start all services (MongoDB, Redis, API, Frontend)
 docker-compose up -d
 
-# For development with Docker
+# View service logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# For development with Docker (databases only)
 docker-compose -f docker-compose.dev.yml up -d
 ```
 
-## �  API Configuration
+**Note**: The application is pre-configured with MongoDB Atlas, so Docker is optional for development.
 
-### Required API Keys
+## 🔑 API Configuration
 
-| Service | Purpose | Get API Key |
-|---------|---------|-------------|
-| **OpenAI** | AI summarization, content analysis | [OpenAI Platform](https://platform.openai.com/api-keys) |
-| **MongoDB** | Data persistence | Local installation or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) |
+### Database (Pre-configured)
+The application comes with a pre-configured MongoDB Atlas database connection. No additional setup required for development.
 
-### Optional API Keys
+### Required API Keys for Full Functionality
 
-| Service | Purpose | Get API Key |
-|---------|---------|-------------|
-| **Hugging Face** | Free AI alternative | [Hugging Face Tokens](https://huggingface.co/settings/tokens) |
-| **YouTube Data API** | Video content integration | [Google Cloud Console](https://console.developers.google.com/) |
-| **AssemblyAI** | Audio transcription | [AssemblyAI](https://www.assemblyai.com/) |
-| **Google Custom Search** | Content discovery | [Google Developers](https://developers.google.com/custom-search/v1/introduction) |
-| **News API** | News content integration | [NewsAPI.org](https://newsapi.org/) |
+| Service | Purpose | Get API Key | Status |
+|---------|---------|-------------|---------|
+| **OpenAI** | Premium AI summarization | [OpenAI Platform](https://platform.openai.com/api-keys) | Required for AI features |
+| **YouTube Data API** | Video content processing | [Google Cloud Console](https://console.developers.google.com/) | Pre-configured |
 
-## 🎯 Feature Deep Dive
+### Optional API Keys for Enhanced Features
 
-### Content Summarizer Modes
+| Service | Purpose | Get API Key | Benefits |
+|---------|---------|-------------|----------|
+| **Hugging Face** | Free AI alternative | [Hugging Face Tokens](https://huggingface.co/settings/tokens) | Fallback AI processing |
+| **AssemblyAI** | Audio transcription | [AssemblyAI](https://www.assemblyai.com/) | Video transcription |
+| **Google Custom Search** | Content discovery | [Google Developers](https://developers.google.com/custom-search/v1/introduction) | Enhanced content search |
 
-#### TL;DR Mode (2-3 minutes read)
-- Quick bullet points of key information
-- Essential takeaways only
-- Perfect for rapid content review
+### API Key Setup Priority
+1. **OpenAI API Key** - Essential for AI summarization features
+2. **YouTube API Key** - Already configured, but you may want your own for production
+3. **Hugging Face Token** - Recommended as AI fallback option
+4. **Other APIs** - Optional for enhanced functionality
 
-#### Insight Mode (5-10 minutes read)
-- Balanced analysis with context
-- Practical applications and examples
-- Recommended for most use cases
+## 🎯 Feature Overview
 
-#### Detailed Mode (15-30 minutes read)
-- Comprehensive analysis and learning paths
-- In-depth explanations and connections
-- Ideal for thorough understanding
+### AI-Powered Content Summarization
 
-### AI Provider Fallback System
+#### Three Summary Modes
+- **TL;DR Mode**: Quick bullet points for rapid content review (2-3 min read)
+- **Insight Mode**: Balanced analysis with practical applications (5-10 min read)  
+- **Detailed Mode**: Comprehensive analysis with learning paths (15-30 min read)
 
+#### AI Provider Fallback System
 ```
 OpenAI GPT Models (Premium)
     ↓ (if unavailable)
 Hugging Face Models (Free)
     ↓ (if unavailable)
-Rule-based Summarization (Always available)
+Basic Text Processing (Always available)
 ```
 
-### Smart Scheduler Features
+### Learning Management System
 
-- **Time Block Optimization**: AI analyzes your productivity patterns
-- **Priority Matrix**: Eisenhower matrix implementation with AI insights
-- **Deadline Management**: Automatic scheduling based on urgency and importance
-- **Break Scheduling**: Intelligent rest period recommendations
+#### Video Notes & Progress Tracking
+- **Auto-save note-taking** during video playback
+- **Progress indicators** with completion tracking
+- **Searchable notes** with content linking
+- **Learning analytics** and insights dashboard
+
+#### Post-Video Quizzes
+- **AI-generated questions** based on video content
+- **Knowledge reinforcement** with immediate feedback
+- **Progress tracking** and skill assessment
+- **Adaptive difficulty** based on performance
+
+### Personalized Recommendations
+
+#### Semantic Content Matching
+- **User embedding generation** from learning interests
+- **Content embedding system** for semantic analysis
+- **Cosine similarity matching** for personalized suggestions
+- **Behavioral analytics** for recommendation refinement
 
 ## 🔧 Development
 
 ### Available Scripts
 
 ```bash
-# Frontend
-npm run dev              # Start development server
+# Frontend Development
+npm run dev              # Start Vite development server (http://localhost:5173)
 npm run build            # Build for production
 npm run preview          # Preview production build
-npm run lint             # Run ESLint
-npm run test             # Run tests
-npm run type-check       # TypeScript type checking
+npm run lint             # Run ESLint code analysis
+npm run test             # Run Vitest tests
+npm run test:watch       # Run tests in watch mode
 
-# Backend
+# Backend Development
 cd server
-npm run dev              # Start with nodemon
+npm run dev              # Start with nodemon (auto-restart on changes)
 npm run start            # Production start
 npm run prod             # Production with NODE_ENV=production
-npm run health           # Health check
-npm run logs             # View logs
+npm run health           # Check API health status
+npm run logs             # View application logs
 npm run clean-logs       # Clean log files
 
-# Full Stack
-npm run dev:full         # Start both frontend and backend
+# Full Stack Development
+npm run dev:full         # Start both frontend and backend concurrently
+npm run build:prod       # Production build with optimizations
 ```
 
 ### Project Structure
 
 ```
 prodmind/
-├── src/                          # Frontend source code
+├── src/                          # Frontend React application
 │   ├── components/               # Reusable UI components
-│   │   ├── ui/                  # Base UI components
+│   │   ├── ui/                  # Base UI components (buttons, inputs, etc.)
 │   │   ├── Navbar/              # Navigation components
 │   │   ├── Footer/              # Footer components
-│   │   └── ...                  # Feature-specific components
-│   ├── pages/                   # Page components
-│   │   ├── Dashboard/           # Main dashboard
-│   │   ├── Summarizer/          # Content summarizer
-│   │   ├── VideoNotes/          # Learning notes
-│   │   ├── Auth/                # Authentication
-│   │   └── ...                  # Other pages
+│   │   ├── Contact/             # Contact form components
+│   │   └── [Feature Components] # Dashboard, Analytics, Video Player, etc.
+│   ├── pages/                   # Route-based page components
+│   │   ├── Dashboard/           # Main user dashboard
+│   │   ├── Summarizer/          # AI content summarization
+│   │   ├── VideoNotes/          # Learning notes management
+│   │   ├── VideoPlayer/         # Video playback with notes
+│   │   ├── Recommendations/     # AI-powered content recommendations
+│   │   ├── Profile/             # User profile and settings
+│   │   └── Auth/                # Authentication (login/register)
+│   ├── services/                # API communication layer
 │   ├── hooks/                   # Custom React hooks
-│   ├── services/                # API and business logic
-│   ├── contexts/                # React contexts
-│   ├── utils/                   # Utility functions
-│   └── styles/                  # Global styles
-├── server/                      # Backend source code
-│   ├── routes/                  # API routes
-│   ├── models/                  # Database models
-│   ├── middleware/              # Express middleware
+│   ├── contexts/                # React context providers
+│   ├── utils/                   # Utility functions and helpers
+│   └── styles/                  # Global CSS and styling
+├── server/                      # Node.js backend API
+│   ├── routes/                  # Express API routes
+│   │   ├── auth.js             # Authentication endpoints
+│   │   ├── summarizer.js       # Content summarization API
+│   │   ├── videoNotes.js       # Notes management API
+│   │   ├── recommendations.js  # AI recommendation engine
+│   │   ├── analytics.js        # User analytics API
+│   │   └── userProfile.js      # User profile management
+│   ├── models/                  # MongoDB/Mongoose schemas
+│   │   ├── User.js             # User account model
+│   │   ├── Content.js          # Content metadata model
+│   │   ├── VideoNotes.js       # Learning notes model
+│   │   ├── Summary.js          # AI-generated summaries
+│   │   ├── Quiz.js             # Post-video quiz model
+│   │   └── UserContentInteraction.js # User behavior tracking
 │   ├── services/                # Business logic services
+│   │   ├── aiService.js        # AI/ML integration service
+│   │   ├── recommendationService.js # Recommendation algorithms
+│   │   └── userAnalyticsService.js # Analytics processing
+│   ├── middleware/              # Express middleware
+│   ├── utils/                   # Backend utility functions
+│   ├── scripts/                 # Database and maintenance scripts
 │   └── logs/                    # Application logs
 ├── public/                      # Static assets
 ├── dist/                        # Production build output
@@ -417,29 +447,47 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **API Keys Not Working**
 ```bash
-# Verify API key format
-OpenAI: sk-...
-Hugging Face: hf_...
-YouTube: AIza...
+# Verify API key format in server/.env
+OpenAI: sk-proj-... (starts with sk-proj or sk-)
+Hugging Face: hf_... (starts with hf_)
+YouTube: AIza... (starts with AIza)
+```
+
+**Frontend Not Connecting to Backend**
+```bash
+# Check if backend is running
+curl http://localhost:5001/api/health
+
+# Verify VITE_API_BASE_URL in .env
+echo $VITE_API_BASE_URL  # Should be http://localhost:5001
 ```
 
 **Database Connection Issues**
 ```bash
-# Check MongoDB connection
-docker-compose logs mongodb
-
-# Verify connection string
-echo $MONGODB_URI
+# The app uses MongoDB Atlas (cloud) by default
+# Check server/.env for MONGODB_URI
+# If using local MongoDB, ensure it's running on port 27017
 ```
 
-**Build Failures**
+**Build or Dependency Issues**
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules package-lock.json
 npm install
 
+# For backend dependencies
+cd server && rm -rf node_modules package-lock.json && npm install
+
 # Check Node.js version
 node --version  # Should be 20+
+```
+
+**Port Conflicts**
+```bash
+# Frontend runs on :5173, Backend on :5001
+# Check if ports are available
+lsof -i :5173
+lsof -i :5001
 ```
 
 ### Performance Optimization
@@ -456,25 +504,31 @@ node --version  # Should be 20+
 - **Connection pooling** for database connections
 - **Caching layers** with Redis
 
-## 🔮 Roadmap & Future Features
+## 🔮 Current Status & Roadmap
 
-### Short Term (Next 3 months)
-- [ ] **Mobile responsive design** improvements
-- [ ] **Offline mode** with service workers
-- [ ] **Advanced search** with full-text indexing
-- [ ] **Export functionality** for notes and summaries
+### ✅ Implemented Features
+- [x] **AI-powered content summarization** with multiple modes
+- [x] **YouTube video integration** with note-taking
+- [x] **User authentication** and profile management
+- [x] **Personalized recommendations** using semantic matching
+- [x] **Post-video quizzes** with AI-generated questions
+- [x] **Learning analytics** and progress tracking
+- [x] **Responsive design** with modern UI/UX
+- [x] **Docker deployment** support
 
-### Medium Term (3-6 months)
+### 🚧 In Development
+- [ ] **Enhanced mobile responsiveness**
+- [ ] **Advanced search functionality**
+- [ ] **Content export features**
+- [ ] **Performance optimizations**
+
+### 🔮 Future Enhancements
 - [ ] **Team collaboration** features
 - [ ] **Advanced analytics** dashboard
-- [ ] **Integration APIs** for third-party tools
-- [ ] **Multi-language support** for international users
-
-### Long Term (6+ months)
-- [ ] **Mobile applications** (iOS/Android)
-- [ ] **AI model fine-tuning** for personalized experiences
+- [ ] **Multi-language support**
 - [ ] **Voice interface** integration
-- [ ] **Advanced workflow automation**
+- [ ] **Mobile applications** (iOS/Android)
+- [ ] **Third-party integrations** (Notion, Obsidian, etc.)
 
 ## 📈 Performance Metrics
 
@@ -492,5 +546,15 @@ node --version  # Should be 20+
 
 ---
 
+## 🚀 Getting Started Checklist
 
-*Transform your productivity journey with AI-powered insights and intelligent automation.*
+1. **Clone the repository** and install dependencies
+2. **Copy `.env.example` to `.env`** for frontend configuration
+3. **Add your OpenAI API key** to `server/.env` for AI features
+4. **Run `npm run dev:full`** to start both frontend and backend
+5. **Visit `http://localhost:5173`** to access the application
+6. **Create an account** and start exploring AI-powered learning!
+
+---
+
+*Enhance your learning journey with AI-powered content summarization and personalized recommendations.*
