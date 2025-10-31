@@ -205,7 +205,34 @@ export default function Header2() {
                         >
                           Content Intelligence
                         </button>
-
+                        <button
+                          onClick={() => {
+                            navigate('/smart-scheduler');
+                            setShowUserMenu(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                        >
+                          Smart Scheduler
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate('/summarizer');
+                            setShowUserMenu(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                        >
+                          Summarizer
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate('/notes');
+                            setShowUserMenu(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                        >
+                          Notes
+                        </button>
+                        <div className="border-t border-gray-600 my-2"></div>
                         <button
                           onClick={handleSignOut}
                           className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
@@ -319,6 +346,34 @@ export default function Header2() {
                       >
                         Content Intelligence
                       </button>
+                      <button
+                        onClick={() => {
+                          navigate('/smart-scheduler');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
+                      >
+                        Smart Scheduler
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/summarizer');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
+                      >
+                        Summarizer
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/notes');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"
+                      >
+                        Notes
+                      </button>
+                      <div className="border-t border-gray-600 my-3"></div>
                       <button
                         onClick={handleSignOut}
                         className="text-white hover:bg-white/10 block w-full rounded-lg py-3 text-center font-medium transition-colors duration-200"

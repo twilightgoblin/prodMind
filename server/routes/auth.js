@@ -110,6 +110,15 @@ export const optionalAuth = async (req, res, next) => {
 router.post('/signup', /* signupLimiter, */ async (req, res, next) => {
   try {
     const { firstName, lastName, email, password, confirmPassword } = req.body;
+    
+    // Debug logging
+    console.log('📝 Signup attempt:', {
+      firstName: firstName ? '✓' : '✗',
+      lastName: lastName ? '✓' : '✗',
+      email: email ? '✓' : '✗',
+      password: password ? `✓ (${password.length} chars)` : '✗',
+      confirmPassword: confirmPassword ? '✓' : '✗'
+    });
 
     // Validation
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
@@ -124,10 +133,32 @@ router.post('/signup', /* signupLimiter, */ async (req, res, next) => {
       throw new ValidationError('Password must be at least 8 characters long');
     }
 
-    // Check password strength
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
-    if (!passwordRegex.test(password)) {
-      throw new ValidationError('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+    // Check password strength with detailed validation
+    const hasLowercase = /[a-z]/.test(password);
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[@$!%*?&#+\-=<>(){}[\]|\\:";'.,/~`^_]/.test(password);
+
+    console.log('🔐 Password validation:', {
+      length: password.length,
+      hasLowercase,
+      hasUppercase,
+      hasNumber,
+      hasSpecialChar,
+      password: password.substring(0, 3) + '***' // Show first 3 chars for debugging
+    });
+
+    if (!hasLowercase) {
+      throw new ValidationError('Password must contain at least one lowercase letter');
+    }
+    if (!hasUppercase) {
+      throw new ValidationError('Password must contain at least one uppercase letter');
+    }
+    if (!hasNumber) {
+      throw new ValidationError('Password must contain at least one number');
+    }
+    if (!hasSpecialChar) {
+      throw new ValidationError('Password must contain at least one special character');
     }
 
     // Check if user already exists
@@ -165,7 +196,16 @@ router.post('/signup', /* signupLimiter, */ async (req, res, next) => {
     });
 
   } catch (error) {
-    next(error);
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      next(new ValidationError(messages.join('. ')));
+    } else if (error.code === 11000) {
+      // Handle duplicate key error (email already exists)
+      next(new ValidationError('User with this email already exists'));
+    } else {
+      next(error);
+    }
   }
 });
 

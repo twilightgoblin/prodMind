@@ -38,7 +38,7 @@ const SignUp = () => {
       if (password.length >= 8) strength += 25;
       if (/[A-Z]/.test(password)) strength += 25;
       if (/[0-9]/.test(password)) strength += 25;
-      if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+      if (/[@$!%*?&#+\-=<>(){}[\]|\\:";'.,/~`^_]/.test(password)) strength += 25;
       return strength;
     };
     setPasswordStrength(calculateStrength(formData.password));
@@ -62,6 +62,18 @@ const SignUp = () => {
     e.preventDefault();
     setError('');
     
+    console.log('🚀 Form submission:', {
+      formData: {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        passwordLength: formData.password.length,
+        confirmPasswordLength: formData.confirmPassword.length
+      },
+      agreedToTerms,
+      passwordStrength
+    });
+    
     if (!agreedToTerms) {
       setError('Please agree to the terms and conditions');
       return;
@@ -81,6 +93,7 @@ const SignUp = () => {
     if (result.success) {
       navigate('/dashboard');
     } else {
+      console.error('❌ Signup failed:', result.error);
       setError(result.error || 'Registration failed');
     }
     setIsLoading(false);
@@ -104,7 +117,7 @@ const SignUp = () => {
     { text: 'At least 8 characters', met: formData.password.length >= 8 },
     { text: 'One uppercase letter', met: /[A-Z]/.test(formData.password) },
     { text: 'One number', met: /[0-9]/.test(formData.password) },
-    { text: 'One special character', met: /[^A-Za-z0-9]/.test(formData.password) }
+    { text: 'One special character', met: /[@$!%*?&#+\-=<>(){}[\]|\\:";'.,/~`^_]/.test(formData.password) }
   ];
 
 
