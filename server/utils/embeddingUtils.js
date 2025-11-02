@@ -118,14 +118,7 @@ class EmbeddingUtils {
       textParts.push(`Learning Goals: ${goals}`);
     }
     
-    // Preferred content types and learning style
-    if (userProfile.learningProfile?.preferredContentTypes?.length) {
-      textParts.push(`Preferred Content: ${userProfile.learningProfile.preferredContentTypes.join(', ')}`);
-    }
-    
-    if (userProfile.learningProfile?.learningStyle) {
-      textParts.push(`Learning Style: ${userProfile.learningProfile.learningStyle}`);
-    }
+
     
     // Behavior-based preferences
     if (userProfile.behaviorAnalytics?.preferredContentDifficulty) {

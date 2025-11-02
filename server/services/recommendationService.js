@@ -74,23 +74,6 @@ class RecommendationService {
     // Filter by content types
     if (filters.contentTypes?.length) {
       query.source = { $in: filters.contentTypes };
-    } else if (user.learningProfile?.preferredContentTypes?.length) {
-      // Map user preferences to actual content sources
-      const contentTypeMapping = {
-        'video': 'youtube',
-        'article': 'article',
-        'podcast': 'podcast',
-        'course': 'course'
-      };
-      
-      const mappedTypes = user.learningProfile.preferredContentTypes.map(type => 
-        contentTypeMapping[type] || type
-      );
-      
-      // If no matching types found, don't filter by content type
-      if (mappedTypes.length > 0) {
-        query.source = { $in: mappedTypes };
-      }
     }
 
     // Filter by difficulty
@@ -282,13 +265,7 @@ class RecommendationService {
     let score = 0;
     let factors = 0;
 
-    // Content type preference
-    if (user.learningProfile?.preferredContentTypes?.length) {
-      factors++;
-      if (user.learningProfile.preferredContentTypes.includes(content.source)) {
-        score += 0.3;
-      }
-    }
+
 
     // Difficulty preference
     if (user.behaviorAnalytics?.preferredContentDifficulty) {
@@ -409,10 +386,7 @@ class RecommendationService {
       }
     }
 
-    // Preferred content type
-    if (user.learningProfile?.preferredContentTypes?.includes(content.source)) {
-      reasons.push(`Matches your preferred ${content.source} format`);
-    }
+
 
     // Appropriate difficulty
     if (content.metadata?.difficulty === user.behaviorAnalytics?.preferredContentDifficulty) {

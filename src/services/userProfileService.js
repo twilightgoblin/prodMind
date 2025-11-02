@@ -271,18 +271,7 @@ class UserProfileService {
     return this.updateProfile({ preferences });
   }
 
-  /**
-   * Helper method to update learning style
-   * @param {string} learningStyle - Learning style
-   * @returns {Promise<Object>} - Response
-   */
-  async updateLearningStyle(learningStyle) {
-    return this.updateProfile({
-      learningProfile: {
-        learningStyle
-      }
-    });
-  }
+
 
   /**
    * Helper method to update available time
@@ -301,18 +290,6 @@ class UserProfileService {
     });
   }
 
-  /**
-   * Helper method to update preferred content types
-   * @param {Array} contentTypes - Preferred content types
-   * @returns {Promise<Object>} - Response
-   */
-  async updatePreferredContentTypes(contentTypes) {
-    return this.updateProfile({
-      learningProfile: {
-        preferredContentTypes: contentTypes
-      }
-    });
-  }
 }
 
 export default new UserProfileService();

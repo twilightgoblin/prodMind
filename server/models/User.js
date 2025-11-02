@@ -69,15 +69,8 @@ const userSchema = new mongoose.Schema({
       progress: { type: Number, min: 0, max: 100, default: 0 },
       createdAt: { type: Date, default: Date.now }
     }],
-    preferredContentTypes: [{
-      type: String,
-      enum: ['video', 'article', 'podcast', 'course']
-    }],
-    learningStyle: {
-      type: String,
-      enum: ['visual', 'auditory', 'kinesthetic', 'reading'],
-      default: 'visual'
-    },
+
+
     availableTime: {
       dailyMinutes: { type: Number, default: 60 },
       preferredTimes: [{

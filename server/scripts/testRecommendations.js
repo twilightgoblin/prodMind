@@ -51,8 +51,8 @@ async function testRecommendations() {
               progress: 10
             }
           ],
-          preferredContentTypes: ['video'],
-          learningStyle: 'visual',
+
+
           availableTime: {
             dailyMinutes: 60,
             preferredTimes: ['evening']

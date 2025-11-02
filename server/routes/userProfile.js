@@ -103,18 +103,9 @@ router.post('/profile/update', authenticateToken, async (req, res) => {
         }));
       }
 
-      if (learningProfile.preferredContentTypes) {
-        const validTypes = ['video', 'article', 'podcast', 'course'];
-        updateData['learningProfile.preferredContentTypes'] = learningProfile.preferredContentTypes
-          .filter(type => validTypes.includes(type));
-      }
 
-      if (learningProfile.learningStyle) {
-        const validStyles = ['visual', 'auditory', 'kinesthetic', 'reading'];
-        if (validStyles.includes(learningProfile.learningStyle)) {
-          updateData['learningProfile.learningStyle'] = learningProfile.learningStyle;
-        }
-      }
+
+
 
       if (learningProfile.availableTime) {
         updateData['learningProfile.availableTime'] = {
@@ -387,8 +378,8 @@ function calculateProfileCompleteness(user) {
   // Learning profile (60 points)
   if (user.learningProfile?.interests?.length > 0) score += 20;
   if (user.learningProfile?.learningGoals?.length > 0) score += 15;
-  if (user.learningProfile?.preferredContentTypes?.length > 0) score += 10;
-  if (user.learningProfile?.learningStyle) score += 10;
+
+
   if (user.learningProfile?.availableTime?.dailyMinutes > 0) score += 5;
 
   // Preferences (20 points)

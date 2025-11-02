@@ -401,8 +401,8 @@ router.get('/analytics/:userId', authenticateToken, async (req, res) => {
         interestsCount: user.learningProfile?.interests?.length || 0,
         goalsCount: user.learningProfile?.learningGoals?.length || 0,
         activeGoals: user.learningProfile?.learningGoals?.filter(g => g.progress < 100).length || 0,
-        preferredContentTypes: user.learningProfile?.preferredContentTypes || [],
-        learningStyle: user.learningProfile?.learningStyle,
+
+
         dailyTimeAvailable: user.learningProfile?.availableTime?.dailyMinutes || 0
       },
       behaviorAnalytics: user.behaviorAnalytics,
