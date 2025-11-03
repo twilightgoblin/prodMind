@@ -26,7 +26,7 @@ const Home = () => {
 
       <div
         className="absolute text-center px-4 max-w-3xl font-playfair
-        bg-gradient-to-r from-gray-500 via-gray-300 to-white
+        bg-gradient-to-r from-gray-800 via-white to-gray-700
         bg-clip-text text-transparent"
       >
         <VariableProximity
