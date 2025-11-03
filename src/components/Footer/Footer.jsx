@@ -24,9 +24,9 @@ const data = {
   help: {
     faqs: "/faqs",
     support: "/support",
-    livechat: "/live-chat",
+   
     documentation: "/docs",
-    tutorials: "/tutorials",
+    
   },
   legal: {
     privacy: "/privacy-policy",
@@ -35,9 +35,9 @@ const data = {
     security: "/security",
   },
   contact: {
-    email: "alesanjay15@gmail.com",
-    phone: "+91 6364039992",
-    address: "Town Hall, Chikkaballapura",
+    email: "mail",
+    phone: "+91 XXXXX XXXXX",
+    address: "Jayanagar, Bengaluru",
   },
   company: {
     name: "Productive Content",
@@ -64,8 +64,6 @@ const helpfulLinks = [
   { text: "FAQs", href: data.help.faqs },
   { text: "Support Center", href: data.help.support },
   { text: "Documentation", href: data.help.documentation },
-  { text: "Tutorials", href: data.help.tutorials },
-  { text: "Live Chat", href: data.help.livechat, hasIndicator: true },
 ];
 
 const legalLinks = [

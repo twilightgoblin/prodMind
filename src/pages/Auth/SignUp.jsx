@@ -161,7 +161,7 @@ const SignUp = () => {
                       value={formData.firstName}
                       onChange={handleInputChange}
                       className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors backdrop-blur-sm"
-                      placeholder="Ale"
+                      placeholder="First Name"
                       required
                     />
                   </div>
@@ -179,7 +179,7 @@ const SignUp = () => {
                       value={formData.lastName}
                       onChange={handleInputChange}
                       className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors backdrop-blur-sm"
-                      placeholder="Sanjay"
+                      placeholder="Last Name"
                       required
                     />
                   </div>
@@ -199,7 +199,7 @@ const SignUp = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors backdrop-blur-sm"
-                    placeholder="alesanjay15@gmail.com"
+                    placeholder="Enter your email"
                     required
                   />
                 </div>

@@ -231,7 +231,7 @@ const ProfileSetup = () => {
                   </h3>
                   <div className="space-y-3">
                     {profile.interests.map((interest, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                         <div className="flex-1">
                           <span className="font-medium text-white">
                             {interest.topic}
@@ -260,7 +260,7 @@ const ProfileSetup = () => {
                           </span>
                           <button
                             onClick={() => handleRemoveInterest(interest.topic)}
-                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            className="text-red-400 hover:text-red-300"
                           >
                             ✕
                           </button>
@@ -299,7 +299,7 @@ const ProfileSetup = () => {
                       </div>
                       <button
                         onClick={() => handleRemoveGoal(index)}
-                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 ml-4"
+                        className="text-red-400 hover:text-red-300 ml-4"
                       >
                         ✕
                       </button>
