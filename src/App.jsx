@@ -23,6 +23,9 @@ import SignUp from './pages/Auth/SignUp';
 import AuthDemo from './pages/Auth/AuthDemo';
 import Footer4Col from './components/Footer/Footer';
 import LoopingText from './components/LoopingText';
+import TermsOfService from './pages/Legal/TermsOfService';
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
+import CookiePolicy from './pages/Legal/CookiePolicy';
 
 const App = () => {
   return (
@@ -63,6 +66,9 @@ const App = () => {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/auth-demo" element={<AuthDemo />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/cookie-policy" element={<CookiePolicy />} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

@@ -29,8 +29,8 @@ const data = {
     
   },
   legal: {
-    privacy: "/privacy-policy",
-    terms: "/terms-of-service",
+    privacy: "/privacy",
+    terms: "/terms",
     cookies: "/cookie-policy",
     security: "/security",
   },
