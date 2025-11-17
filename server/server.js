@@ -96,7 +96,7 @@ const createRateLimit = (windowMs, max, message) => rateLimit({
   message: { error: message },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'development' && req.ip === '127.0.0.1'
+  skip: (req) => process.env.NODE_ENV === 'development' // Skip rate limiting in development
 });
 
 // Apply different rate limits
