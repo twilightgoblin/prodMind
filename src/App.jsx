@@ -12,7 +12,7 @@ import ContentDashboard from './components/ContentDashboard';
 import Recommendations from './pages/Recommendations/Recommendations';
 
 import Summarizer from './pages/Summarizer/Summarizer';
-
+import Quiz from './pages/Quiz/Quiz';
 
 import SmartScheduler from './components/SmartScheduler';
 import VideoPlayer from './pages/VideoPlayer/VideoPlayer';
@@ -53,7 +53,7 @@ const App = () => {
         <Route path="/recommendations" element={<Recommendations />} />
 
         <Route path="/summarizer" element={<Summarizer />} />
-
+        <Route path="/quiz" element={<Quiz />} />
 
         <Route path="/smart-scheduler" element={
           <div className="min-h-screen bg-[#060010] pt-20">

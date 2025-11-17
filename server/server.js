@@ -15,6 +15,7 @@ import videoNotesRoutes from './routes/videoNotes.js';
 import recommendationRoutes from './routes/recommendations.js';
 import userProfileRoutes from './routes/userProfile.js';
 import analyticsRoutes from './routes/analytics.js';
+import quizRoutes from './routes/quiz.js';
 
 
 // Import middleware
@@ -195,6 +196,7 @@ apiRouter.use('/video-notes', videoNotesRoutes);
 apiRouter.use('/recommendations', recommendationRoutes);
 apiRouter.use('/user', userProfileRoutes);
 apiRouter.use('/analytics', analyticsRoutes);
+apiRouter.use('/quiz', quizRoutes);
 
 
 // Mount API router

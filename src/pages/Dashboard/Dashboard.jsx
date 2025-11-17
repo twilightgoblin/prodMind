@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import QuizHistory from '../../components/QuizHistory';
 import { 
   BookOpen, 
   Calendar, 
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   // Redirect to sign in if not authenticated
@@ -245,6 +246,15 @@ const Dashboard = () => {
               </Link>
             );
           })}
+        </div>
+
+        {/* Quiz History Section */}
+        <div className="mt-16 mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold text-white">Your Quiz History</h2>
+            <p className="text-gray-400 text-sm">Track your learning progress</p>
+          </div>
+          <QuizHistory userId={user?._id || user?.id || user?.email || localStorage.getItem('userId') || 'default-user'} />
         </div>
 
         {/* Performance Metrics */}

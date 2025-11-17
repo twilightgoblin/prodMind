@@ -33,7 +33,7 @@ class YouTubeService {
       } = options;
 
       const params = new URLSearchParams({
-        part: 'snippet,statistics,contentDetails',
+        part: 'snippet',
         q: query,
         type,
         maxResults,

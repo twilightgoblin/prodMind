@@ -24,14 +24,15 @@ class ApiKeyService {
       // Fetch from backend
       const response = await api.get(`/keys/${service}`);
       
-      if (response.data && response.data.apiKey) {
+      // api.get() already returns the parsed JSON, not wrapped in .data
+      if (response && response.apiKey) {
         // Cache the result
         this.cache.set(cacheKey, {
-          apiKey: response.data.apiKey,
+          apiKey: response.apiKey,
           timestamp: Date.now()
         });
         
-        return response.data.apiKey;
+        return response.apiKey;
       }
       
       throw new Error(`No API key found for service: ${service}`);
@@ -56,7 +57,7 @@ class ApiKeyService {
   async getServicesStatus() {
     try {
       const response = await api.get('/keys');
-      return response.data.services;
+      return response.services;
     } catch (error) {
       console.error('Failed to get services status:', error);
       throw new Error('Failed to retrieve services configuration status');

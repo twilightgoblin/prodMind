@@ -8,21 +8,12 @@ const SimpleVideoPlayer = ({
   contentId, 
   videoUrl, 
   title,
-  thumbnail,
-  onQuizAvailable, 
-  onWatchComplete,
-  // Notes functionality
-  notes,
-  onNotesChange,
-  onSaveNotes,
-  savingNotes,
-  hasUnsavedNotes
+  thumbnail
 }) => {
   const { user } = useAuth();
   const [watchStarted, setWatchStarted] = useState(false);
   const [watchTime, setWatchTime] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [quizGenerated, setQuizGenerated] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   const [showEmbeddedPlayer, setShowEmbeddedPlayer] = useState(false);
@@ -38,12 +29,6 @@ const SimpleVideoPlayer = ({
       timerRef.current = setInterval(() => {
         setWatchTime(prev => {
           const newTime = prev + 1;
-          
-          // Generate quiz after 2 minutes of watching
-          if (newTime >= 120 && !quizGenerated && user) {
-            generateQuiz();
-            setQuizGenerated(true);
-          }
           
           // Simulate completion at 5 minutes for demo purposes
           if (newTime >= 300) {
@@ -156,18 +141,7 @@ const SimpleVideoPlayer = ({
         completionPercentage: 100 
       });
       
-      // Only generate quiz if user watched for a reasonable amount of time
-      if (totalWatchTime >= 120 && !quizGenerated) { // At least 2 minutes
-        await generateQuiz();
-        setQuizGenerated(true);
-      }
     }
-    
-    onWatchComplete?.({
-      watchTime: totalWatchTime,
-      completionPercentage: 100,
-      completed: true
-    });
   };
 
   const trackInteraction = async (interactionType, data) => {
@@ -210,51 +184,6 @@ const SimpleVideoPlayer = ({
       }
     } catch (error) {
       console.error('Error tracking interaction:', error);
-    }
-  };
-
-  const generateQuiz = async () => {
-    console.log('🎯 Attempting to generate quiz for contentId:', contentId);
-    
-    if (!user) {
-      console.warn('❌ No user authenticated, skipping quiz generation');
-      return;
-    }
-    
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        console.warn('❌ No auth token available for quiz generation');
-        return;
-      }
-
-      console.log('🔄 Generating personalized quiz...');
-      
-      // Initialize API client to ensure correct base URL
-      await apiClient.initialize();
-
-      const response = await fetch(`${apiClient.baseURL}/api/analytics/quiz/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ contentId })
-      });
-
-      const result = await response.json();
-      
-      if (response.ok && result.success && result.quiz) {
-        onQuizAvailable?.(result.quiz);
-        console.log('✅ Quiz generated successfully:', result.quiz.title);
-        console.log(`📝 Generated ${result.quiz.questions.length} questions`);
-      } else {
-        console.warn('❌ Quiz generation failed:', result);
-        console.log('no quiz generated');
-      }
-    } catch (error) {
-      console.error('❌ Error generating quiz:', error);
-      console.log('no quiz generated');
     }
   };
 
@@ -347,13 +276,6 @@ const SimpleVideoPlayer = ({
                     {timerActive && (
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     )}
-                    {/* Debug info */}
-                    {watchTime >= 120 && !quizGenerated && (
-                      <span className="text-yellow-400 text-xs">(Quiz ready)</span>
-                    )}
-                    {quizGenerated && (
-                      <span className="text-green-400 text-xs">(Quiz generated)</span>
-                    )}
                   </span>
                   <span>{formatTime(watchTime)} watched</span>
                 </div>
@@ -423,33 +345,7 @@ const SimpleVideoPlayer = ({
 
               </div>
 
-              {/* Debug: Manual Quiz Generation Button */}
-              {user && !quizGenerated && watchStarted && (
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => {
-                      console.log('🧪 Manual quiz generation triggered');
-                      generateQuiz();
-                      setQuizGenerated(true);
-                    }}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                  >
-                    🧪 Generate Quiz (Debug)
-                  </button>
-                </div>
-              )}
 
-              {/* Quiz Status */}
-              {isCompleted && (
-                <div className="p-3 bg-blue-900/20 border border-blue-800/30 rounded-lg">
-                  <div className="flex items-center gap-2 text-blue-400 text-sm">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                    <span>
-                      {quizGenerated ? 'Quiz is ready!' : 'Generating personalized quiz...'}
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div className="text-center py-4">

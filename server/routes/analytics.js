@@ -102,121 +102,21 @@ router.get('/watch-history', authenticateToken, async (req, res) => {
   }
 });
 
-// Generate post-content quiz
-router.post('/quiz/generate', authenticateToken, async (req, res) => {
+// Get user quiz statistics
+router.get('/quiz/stats', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { contentId } = req.body;
-
-    console.log(`🎯 Quiz generation request - User: ${userId}, Content: ${contentId}`);
-
-    if (!contentId) {
-      console.log('❌ Missing contentId in quiz generation request');
-      return res.status(400).json({
-        success: false,
-        message: 'contentId is required'
-      });
-    }
-
-    console.log('🔄 Generating quiz...');
-    const result = await userAnalyticsService.generatePostContentQuiz(userId, contentId);
+    const stats = await userAnalyticsService.getUserQuizStats(userId);
     
-    if (result.success) {
-      console.log(`✅ Quiz generated successfully: ${result.quiz.title} (${result.quiz.questions.length} questions)`);
-    } else {
-      console.log('❌ Quiz generation failed:', result.message);
-    }
-    
-    res.json(result);
-  } catch (error) {
-    console.error('❌ Error generating quiz:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate quiz',
-      error: error.message
-    });
-  }
-});
-
-// Submit quiz results
-router.post('/quiz/submit', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { contentId, quizId, answers, timeToComplete } = req.body;
-
-    // Calculate quiz score
-    const Quiz = (await import('../models/Quiz.js')).default;
-    const quiz = await Quiz.findById(quizId);
-    
-    if (!quiz) {
-      return res.status(404).json({
-        success: false,
-        message: 'Quiz not found'
-      });
-    }
-
-    let correctAnswers = 0;
-    const detailedResults = [];
-
-    quiz.questions.forEach((question, index) => {
-      const userAnswer = answers[question.id];
-      const isCorrect = JSON.stringify(userAnswer) === JSON.stringify(question.correctAnswer);
-      
-      if (isCorrect) correctAnswers++;
-      
-      detailedResults.push({
-        questionId: question.id,
-        userAnswer,
-        correctAnswer: question.correctAnswer,
-        isCorrect,
-        explanation: question.explanation
-      });
-    });
-
-    const score = Math.round((correctAnswers / quiz.questions.length) * 100);
-    
-    // Track quiz interaction
-    const quizResults = {
-      score,
-      totalQuestions: quiz.questions.length,
-      correctAnswers,
-      timeToComplete,
-      conceptsUnderstood: detailedResults
-        .filter(r => r.isCorrect)
-        .map(r => quiz.questions.find(q => q.id === r.questionId)?.concepts || [])
-        .flat(),
-      conceptsToReview: detailedResults
-        .filter(r => !r.isCorrect)
-        .map(r => quiz.questions.find(q => q.id === r.questionId)?.concepts || [])
-        .flat()
-    };
-
-    await userAnalyticsService.trackInteraction(userId, {
-      contentId,
-      interactionType: 'complete',
-      quizResults,
-      metadata: {
-        quizId,
-        detailedResults
-      }
-    });
-
     res.json({
       success: true,
-      results: {
-        score,
-        passed: score >= quiz.passingScore,
-        correctAnswers,
-        totalQuestions: quiz.questions.length,
-        detailedResults,
-        conceptsToReview: quizResults.conceptsToReview
-      }
+      stats
     });
   } catch (error) {
-    console.error('Error submitting quiz:', error);
+    console.error('Error getting quiz stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to submit quiz',
+      message: 'Failed to get quiz statistics',
       error: error.message
     });
   }

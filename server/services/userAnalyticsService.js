@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import User from '../models/User.js';
 import UserContentInteraction from '../models/UserContentInteraction.js';
 import Content from '../models/Content.js';
-import Quiz from '../models/Quiz.js';
+import QuizResult from '../models/QuizResult.js';
 
 class UserAnalyticsService {
   
@@ -335,33 +335,52 @@ class UserAnalyticsService {
   }
   
   /**
-   * Generate personalized quiz after content consumption
+   * Get user's quiz statistics
    */
-  async generatePostContentQuiz(userId, contentId) {
+  async getUserQuizStats(userId) {
     try {
-      // For demo purposes, allow quiz generation even without completion tracking
-      // In production, you might want to enforce completion requirements
+      const quizResults = await QuizResult.find({ userId }).lean();
       
-      // Check if quiz already exists
-      let quiz = await Quiz.findOne({ contentId, isActive: true });
-      
-      // Force regeneration if existing quiz has less than 10 questions (for the update)
-      if (!quiz || quiz.questions.length < 10) {
-        // Delete old quiz if it exists
-        if (quiz) {
-          await Quiz.deleteOne({ _id: quiz._id });
-        }
-        
-        // Generate new quiz based on content or create a sample quiz
-        quiz = await Quiz.generateFromContent(contentId, {
-          difficulty: 'intermediate'
-        });
-        await quiz.save();
+      if (quizResults.length === 0) {
+        return {
+          totalQuizzes: 0,
+          averageScore: 0,
+          bestScore: 0,
+          topicBreakdown: {}
+        };
       }
       
-      return { success: true, quiz };
+      const totalQuizzes = quizResults.length;
+      const averageScore = Math.round(
+        quizResults.reduce((sum, quiz) => sum + quiz.score, 0) / totalQuizzes
+      );
+      const bestScore = Math.max(...quizResults.map(q => q.score));
+      
+      // Topic breakdown
+      const topicBreakdown = quizResults.reduce((acc, quiz) => {
+        if (!acc[quiz.topic]) {
+          acc[quiz.topic] = { count: 0, totalScore: 0 };
+        }
+        acc[quiz.topic].count++;
+        acc[quiz.topic].totalScore += quiz.score;
+        return acc;
+      }, {});
+      
+      // Calculate average per topic
+      Object.keys(topicBreakdown).forEach(topic => {
+        topicBreakdown[topic].averageScore = Math.round(
+          topicBreakdown[topic].totalScore / topicBreakdown[topic].count
+        );
+      });
+      
+      return {
+        totalQuizzes,
+        averageScore,
+        bestScore,
+        topicBreakdown
+      };
     } catch (error) {
-      console.error('Error generating post-content quiz:', error);
+      console.error('Error getting user quiz stats:', error);
       return { success: false, error: error.message };
     }
   }

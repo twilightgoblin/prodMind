@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 import SimpleVideoPlayer from '../../components/SimpleVideoPlayer';
-import PostVideoQuiz from '../../components/PostVideoQuiz';
-import { ArrowLeft, BookOpen, Clock, Star, Tag, Save } from 'lucide-react';
+import { ArrowLeft, BookOpen, Tag, Save, Brain } from 'lucide-react';
 import apiClient from '../../utils/api.js';
 
 const VideoPlayer = () => {
   const { user } = useAuth();
   const { contentId } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [content, setContent] = useState(null);
-  const [availableQuiz, setAvailableQuiz] = useState(null);
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [quizResults, setQuizResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -185,69 +182,49 @@ const VideoPlayer = () => {
     }
   };
 
-  const handleQuizAvailable = (quiz) => {
-    setAvailableQuiz(quiz);
-    // Show notification that quiz is available
-    if (user) {
-      showQuizNotification();
+  const handleStartTopicQuiz = () => {
+    // Get the first tag or extract from title
+    let topic = content.metadata?.tags?.[0];
+    
+    if (!topic && content.title) {
+      // Try to extract topic from title - order matters! Check longer strings first
+      const title = content.title.toLowerCase();
+      const availableTopics = [
+        'next.js', 'nextjs',  // Check Next.js before TypeScript
+        'node.js', 'nodejs',  // Check Node.js before JavaScript
+        'javascript', 
+        'typescript',
+        'express',
+        'react',
+        'python',
+        'java',
+        'c++', 'cpp'
+      ];
+      
+      // Find first matching topic in title
+      topic = availableTopics.find(t => title.includes(t));
+      
+      // Normalize topic names
+      if (topic === 'node.js') topic = 'nodejs';
+      if (topic === 'next.js') topic = 'nextjs';
+      if (topic === 'c++') topic = 'cpp';
+    }
+    
+    if (topic) {
+      navigate('/quiz', { 
+        state: { 
+          topic, 
+          keyword: topic,
+          videoTitle: content.title  // Pass video title
+        } 
+      });
+    } else {
+      // If no topic found, show a message
+      alert('No programming topic detected in this video. Please watch a video about Java, JavaScript, Python, Node.js, TypeScript, React, Next.js, Express, or C++.');
     }
   };
 
-  const showQuizNotification = () => {
-    // Create a toast notification
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce';
-    notification.innerHTML = `
-      <div class="flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-        </svg>
-        <span>Quiz available! Test your knowledge</span>
-      </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 5000);
-  };
 
-  const handleWatchComplete = (watchData) => {
-    // Could trigger additional actions here
-  };
-
-  const handleQuizComplete = (results) => {
-    setQuizResults(results);
-    setShowQuiz(false);
-    
-    // Show results notification
-    const message = results.passed 
-      ? `Great job! You scored ${results.score}%` 
-      : `You scored ${results.score}%. Review the concepts and try again!`;
-    
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 ${results.passed ? 'bg-green-600' : 'bg-yellow-600'} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
-    notification.innerHTML = `
-      <div class="flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${results.passed ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}"></path>
-        </svg>
-        <span>${message}</span>
-      </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 5000);
-  };
 
   if (loading) {
     return (
@@ -318,8 +295,6 @@ const VideoPlayer = () => {
                 videoUrl={content.url}
                 title={content.title}
                 thumbnail={content.thumbnail}
-                onQuizAvailable={handleQuizAvailable}
-                onWatchComplete={handleWatchComplete}
               />
             </div>
 
@@ -354,6 +329,19 @@ const VideoPlayer = () => {
                   </div>
                 </div>
               )}
+
+              {/* Watch Complete Message */}
+              <div className="mt-6 p-4 bg-purple-900/20 border border-purple-800/30 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Brain className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-purple-300 font-semibold mb-1">Test Your Knowledge</h4>
+                    <p className="text-gray-300 text-sm">
+                      Watch the complete video and take the quiz below in the Learning Assessment section to test your understanding.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -423,43 +411,41 @@ const VideoPlayer = () => {
                     Sign In
                   </button>
                 </div>
-              ) : availableQuiz ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-green-400">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium">Quiz Available!</span>
-                  </div>
-                  <p className="text-gray-300 text-sm mb-4">
-                    Test your understanding of this video content
-                  </p>
-                  <button
-                    onClick={() => setShowQuiz(true)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Take Quiz
-                  </button>
-                  
-                  {quizResults && (
-                    <div className="mt-4 p-3 bg-gray-800/50 rounded-lg">
-                      <p className="text-sm text-gray-300 mb-1">Previous Score:</p>
-                      <div className="flex items-center gap-2">
-                        <Star className={`w-4 h-4 ${quizResults.passed ? 'text-green-400' : 'text-yellow-400'}`} />
-                        <span className={`font-medium ${quizResults.passed ? 'text-green-400' : 'text-yellow-400'}`}>
-                          {quizResults.score}%
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          ({quizResults.correctAnswers}/{quizResults.totalQuestions})
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
               ) : (
-                <div className="text-center py-4">
-                  <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">
-                    Watch at least 80% of the video to unlock the quiz
-                  </p>
+                <div className="space-y-3">
+                  {content.metadata?.tags && content.metadata.tags.length > 0 ? (
+                    <>
+                      <div className="flex items-center gap-2 text-purple-400">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium">Topic Quiz Available!</span>
+                      </div>
+                      <p className="text-gray-300 text-sm mb-4">
+                        Test your knowledge on {content.metadata.tags[0]}
+                      </p>
+                      <button
+                        onClick={handleStartTopicQuiz}
+                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        Take {content.metadata.tags[0]} Quiz
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 text-purple-400">
+                        <BookOpen className="w-4 h-4" />
+                        <span className="text-sm font-medium">Test Your Knowledge</span>
+                      </div>
+                      <p className="text-gray-300 text-sm mb-4">
+                        Take a quiz on programming topics
+                      </p>
+                      <button
+                        onClick={handleStartTopicQuiz}
+                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        Take Topic Quiz
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -528,16 +514,6 @@ const VideoPlayer = () => {
           </div>
         </div>
       </div>
-
-      {/* Quiz Modal */}
-      {showQuiz && availableQuiz && (
-        <PostVideoQuiz
-          quiz={availableQuiz}
-          contentId={content.contentId}
-          onComplete={handleQuizComplete}
-          onClose={() => setShowQuiz(false)}
-        />
-      )}
     </div>
   );
 };
