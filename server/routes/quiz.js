@@ -14,6 +14,7 @@ router.post('/generate', async (req, res) => {
       });
     }
 
+    console.log('Generating quiz for topic:', topic || keyword);
     const quiz = await getQuizQuestions(topic || keyword);
     
     res.json({
@@ -22,6 +23,19 @@ router.post('/generate', async (req, res) => {
     });
   } catch (error) {
     console.error('Quiz generation error:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Return more specific error for insufficient questions
+    if (error.message.includes('Insufficient questions') || 
+        error.message.includes('No question bank found') ||
+        error.message.includes('No questions available')) {
+      return res.status(404).json({ 
+        error: 'Topic not available',
+        message: error.message,
+        suggestion: 'This topic does not have enough questions yet. Try another topic like: java, javascript, python, nodejs, react, or cpp.'
+      });
+    }
+    
     res.status(500).json({ 
       error: 'Failed to generate quiz',
       message: error.message 

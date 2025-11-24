@@ -1,9 +1,76 @@
-import { questionBanks } from '../utils/questionBanks.js';
+import { questionBanks, languageKeywords } from '../utils/questionBanks.js';
 import QuizResult from '../models/QuizResult.js';
 import crypto from 'crypto';
 
+// Use question banks directly (now includes all new languages)
+const mergedQuestionBanks = {
+  ...questionBanks,
+  // Add aliases for common variations
+  'c#': questionBanks.csharp || [],
+  'c++': questionBanks.cpp || [],
+  golang: questionBanks.go || [],
+  postgres: questionBanks.postgresql || [],
+  mongo: questionBanks.mongodb || [],
+  vuejs: questionBanks.vue || [],
+  'vue.js': questionBanks.vue || [],
+  k8s: questionBanks.kubernetes || [],
+  'next.js': questionBanks.nextjs || [],
+  'next': questionBanks.nextjs || [],
+  'node.js': questionBanks.nodejs || [],
+  'node': questionBanks.nodejs || [],
+  'express.js': questionBanks.express || [],
+  'react.js': questionBanks.react || [],
+  '.net': questionBanks.csharp || [],
+  'dotnet': questionBanks.csharp || [],
+  'js': questionBanks.javascript || [],
+  'ts': questionBanks.typescript || [],
+  'py': questionBanks.python || []
+};
+
+/**
+ * Find the best matching language/topic based on keywords
+ */
+function findMatchingTopic(searchTerm) {
+  const normalized = searchTerm.toLowerCase().trim();
+  
+  // Direct match
+  if (mergedQuestionBanks[normalized]) {
+    return normalized;
+  }
+  
+  // Check language keywords
+  for (const [language, keywords] of Object.entries(languageKeywords)) {
+    if (keywords.some(keyword => normalized.includes(keyword) || keyword.includes(normalized))) {
+      return language;
+    }
+  }
+  
+  // Partial match in merged banks
+  const partialMatch = Object.keys(mergedQuestionBanks).find(key => 
+    key.includes(normalized) || normalized.includes(key)
+  );
+  
+  return partialMatch || null;
+}
+
 // Store active quizzes in memory (use Redis in production for better scalability)
 const activeQuizzes = new Map();
+
+/**
+ * Get all available questions from all topics
+ */
+function getAllQuestions() {
+  const allQuestions = [];
+  for (const [topic, questions] of Object.entries(mergedQuestionBanks)) {
+    if (questions && questions.length > 0) {
+      // Add topic info to each question for reference
+      questions.forEach(q => {
+        allQuestions.push({ ...q, sourceTopic: topic });
+      });
+    }
+  }
+  return allQuestions;
+}
 
 /**
  * Get 10 random questions from a topic's question bank
@@ -11,31 +78,40 @@ const activeQuizzes = new Map();
 export const getQuizQuestions = async (topic) => {
   const normalizedTopic = topic.toLowerCase().trim();
   
-  // Find matching topic in question banks
-  const questionBank = questionBanks[normalizedTopic];
+  // Find matching topic using keyword matching
+  const matchingTopic = findMatchingTopic(normalizedTopic);
   
-  if (!questionBank) {
-    // Try to find partial match
-    const matchingTopic = Object.keys(questionBanks).find(key => 
-      key.includes(normalizedTopic) || normalizedTopic.includes(key)
-    );
+  // If no matching topic found, return random questions from all topics
+  if (!matchingTopic) {
+    console.log(`No specific topic found for "${topic}", generating random quiz from all topics`);
+    const allQuestions = getAllQuestions();
     
-    if (!matchingTopic) {
-      throw new Error(`No question bank found for topic: ${topic}`);
+    if (allQuestions.length < 10) {
+      throw new Error(`Insufficient questions available. Only ${allQuestions.length} questions in database.`);
     }
     
-    return generateQuiz(matchingTopic, questionBanks[matchingTopic]);
+    return generateQuiz('Mixed Topics', allQuestions);
   }
   
-  return generateQuiz(normalizedTopic, questionBank);
+  const questionBank = mergedQuestionBanks[matchingTopic];
+  
+  if (!questionBank || questionBank.length === 0) {
+    throw new Error(`No questions available for topic: ${topic}. This topic is not yet supported.`);
+  }
+  
+  return generateQuiz(matchingTopic, questionBank);
 };
 
 /**
  * Generate a quiz with 10 random questions
  */
 function generateQuiz(topic, questions) {
+  if (!questions || questions.length === 0) {
+    throw new Error(`No questions available for topic: ${topic}. This topic is not yet supported.`);
+  }
+  
   if (questions.length < 10) {
-    throw new Error(`Insufficient questions for topic: ${topic}`);
+    throw new Error(`Insufficient questions for topic: ${topic}. Only ${questions.length} questions available, but 10 are required.`);
   }
   
   // Shuffle and select 10 random questions

@@ -86,7 +86,22 @@ class QuizService {
       'typescript',
       'express',
       'react',
-      'nextjs'
+      'nextjs',
+      'go',
+      'rust',
+      'php',
+      'ruby',
+      'swift',
+      'kotlin',
+      'csharp',
+      'sql',
+      'mongodb',
+      'postgresql',
+      'docker',
+      'kubernetes',
+      'aws',
+      'angular',
+      'vue'
     ];
   }
 }

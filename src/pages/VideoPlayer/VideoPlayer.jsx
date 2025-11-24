@@ -190,15 +190,48 @@ const VideoPlayer = () => {
       // Try to extract topic from title - order matters! Check longer strings first
       const title = content.title.toLowerCase();
       const availableTopics = [
-        'next.js', 'nextjs',  // Check Next.js before TypeScript
-        'node.js', 'nodejs',  // Check Node.js before JavaScript
-        'javascript', 
+        // Frameworks (check longer strings first)
+        'next.js', 'nextjs',
+        'node.js', 'nodejs',
+        'express.js', 'express',
+        'react.js', 'react',
+        'vue.js', 'vuejs', 'vue',
+        'angular',
+        
+        // Data Science & ML (check before programming languages to avoid conflicts)
+        'pandas', 'dataframe',
+        'numpy', 'ndarray',
+        
+        // Productivity
+        'productivity', 'time management', 'pomodoro', 'gtd',
+        
+        // Databases (check before programming languages)
+        'postgresql', 'postgres',
+        'mongodb', 'mongo',
+        'sql', 'mysql',
+        
+        // Programming Languages
+        'javascript',
         'typescript',
-        'express',
-        'react',
         'python',
+        'golang',
         'java',
-        'c++', 'cpp'
+        'c++', 'cpp',
+        'rust',
+        'php',
+        'ruby',
+        'swift',
+        'kotlin',
+        'c#', 'csharp',
+        'js',
+        'ts',
+        'py',
+        'go',
+        
+        // DevOps & Cloud
+        'kubernetes', 'k8s',
+        'docker',
+        'aws'
       ];
       
       // Find first matching topic in title
@@ -207,7 +240,19 @@ const VideoPlayer = () => {
       // Normalize topic names
       if (topic === 'node.js') topic = 'nodejs';
       if (topic === 'next.js') topic = 'nextjs';
+      if (topic === 'express.js') topic = 'express';
+      if (topic === 'react.js') topic = 'react';
+      if (topic === 'vue.js' || topic === 'vuejs') topic = 'vue';
       if (topic === 'c++') topic = 'cpp';
+      if (topic === 'js') topic = 'javascript';
+      if (topic === 'ts') topic = 'typescript';
+      if (topic === 'py') topic = 'python';
+      if (topic === 'postgres') topic = 'postgresql';
+      if (topic === 'mongo') topic = 'mongodb';
+      if (topic === 'k8s') topic = 'kubernetes';
+      if (topic === 'dataframe') topic = 'pandas';
+      if (topic === 'ndarray') topic = 'numpy';
+      if (topic === 'time management' || topic === 'pomodoro' || topic === 'gtd') topic = 'productivity';
     }
     
     if (topic) {
@@ -219,8 +264,14 @@ const VideoPlayer = () => {
         } 
       });
     } else {
-      // If no topic found, show a message
-      alert('No programming topic detected in this video. Please watch a video about Java, JavaScript, Python, Node.js, TypeScript, React, Next.js, Express, or C++.');
+      // If no specific topic found, use random/mixed quiz
+      navigate('/quiz', { 
+        state: { 
+          topic: 'random',
+          keyword: 'random',
+          videoTitle: content.title
+        } 
+      });
     }
   };
 

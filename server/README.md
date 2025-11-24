@@ -52,6 +52,28 @@ Node.js + Express + MongoDB backend for the productive content consumption app.
 - `PUT /api/mindmap/:id` - Update mind map
 - `DELETE /api/mindmap/:id` - Delete mind map
 
+### Quiz System
+- `POST /api/quiz/generate` - Generate quiz (10 questions) for a topic
+- `POST /api/quiz/submit` - Submit quiz answers and get results
+- `GET /api/quiz/history/:userId` - Get user's quiz history
+- `DELETE /api/quiz/history/:userId/:quizId` - Delete specific quiz
+- `DELETE /api/quiz/history/:userId` - Clear all quiz history
+
+**Available Quiz Topics (27 topics, 445+ questions):**
+- **Programming Languages**: Java, C++, JavaScript, Node.js, Python, TypeScript, Go, Rust, PHP, Ruby, Swift, Kotlin, C#
+- **Frameworks & Libraries**: Express, React, Next.js, Angular, Vue
+- **Data Science**: Pandas (25 questions), NumPy (25 questions)
+- **Productivity**: Time Management, GTD, Pomodoro, Habits, Focus (25 questions)
+- **Databases**: SQL, MongoDB, PostgreSQL
+- **DevOps & Cloud**: Docker, Kubernetes, AWS
+
+**Smart Topic Matching**: The system uses keyword matching to find topics. For example:
+- "pomodoro" or "time management" → Productivity quiz
+- "dataframe" or "pd" → Pandas quiz
+- "array" or "np" → NumPy quiz
+
+**Random Quiz Fallback**: If no matching topic is found, the system automatically generates a "Mixed Topics" quiz with 10 random questions from all 445+ available questions across all topics.
+
 ### Health Check
 - `GET /api/health` - Server health status
 
