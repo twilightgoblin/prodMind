@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Beams from './Beams';
 import VariableProximity from './VariableProximity';
+import GhostCursor from './GhostCursor';
 
 const Home = () => {
   const containerRef = useRef(null);
@@ -24,10 +25,27 @@ const Home = () => {
         rotation={30}
       />
 
+      <GhostCursor
+        color="#E5E4E2"
+        brightness={1}
+        edgeIntensity={0}
+        trailLength={18}
+        inertia={0.5}
+        grainIntensity={0.05}
+        bloomStrength={0.1}
+        bloomRadius={1.0}
+        bloomThreshold={0.025}
+        fadeDelayMs={1000}
+        fadeDurationMs={1500}
+        className="absolute inset-0"
+        style={{ width: '100%', height: '100%' }}
+        zIndex={1}
+      />
+
       <div
         className="absolute text-center px-4 max-w-3xl font-playfair
         bg-gradient-to-r from-gray-800 via-white to-gray-700
-        bg-clip-text text-transparent"
+        bg-clip-text text-transparent z-10"
       >
         <VariableProximity
           label="Productive Content Consumption"
