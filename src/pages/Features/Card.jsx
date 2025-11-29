@@ -6,8 +6,9 @@
  */
 
 import { cn } from "@/lib/utils";
-import { ArrowRight, Brain, BookOpen, Calendar, Zap, Play, Target, Clock } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight, Brain, BookOpen, Calendar, Zap, Play, Target } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { gsap } from "gsap";
 
 export default function CardFlip({
   title = "Smart Content Intelligence",
@@ -16,18 +17,64 @@ export default function CardFlip({
   features = ["AI Priority Scoring", "Smart Tagging", "Content Analysis", "YouTube Integration"],
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const cardRef = useRef(null);
+  const iconRef = useRef(null);
+  const barsRef = useRef([]);
+
+  useEffect(() => {
+    // Continuous glow pulse for icon
+    if (iconRef.current) {
+      gsap.to(iconRef.current, {
+        boxShadow: "0 0 25px rgba(251, 191, 36, 0.8)",
+        scale: 1.08,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    }
+
+    // Animated bars with wave effect
+    barsRef.current.forEach((bar, index) => {
+      if (bar) {
+        gsap.fromTo(bar,
+          {
+            x: -120,
+            opacity: 0
+          },
+          {
+            x: 120,
+            opacity: 0.7,
+            duration: 2,
+            delay: index * 0.15,
+            repeat: -1,
+            ease: "power2.inOut"
+          }
+        );
+      }
+    });
+  }, []);
+
+  const handleFlip = (flip) => {
+    setIsFlipped(flip);
+    if (cardRef.current) {
+      gsap.to(cardRef.current, {
+        rotateY: flip ? 180 : 0,
+        duration: 0.7,
+        ease: "back.out(1.3)"
+      });
+    }
+  };
 
   return (
     <div
       className="group relative h-[360px] w-full max-w-[300px] [perspective:2000px]"
-      onMouseEnter={() => setIsFlipped(true)}
-      onMouseLeave={() => setIsFlipped(false)}
+      onMouseEnter={() => handleFlip(true)}
+      onMouseLeave={() => handleFlip(false)}
     >
       <div
-        className={cn(
-          "relative h-full w-full [transform-style:preserve-3d] transition-all duration-700",
-          isFlipped ? "[transform:rotateY(180deg)]" : "[transform:rotateY(0deg)]"
-        )}
+        ref={cardRef}
+        className="relative h-full w-full [transform-style:preserve-3d]"
       >
         {/* Front of card */}
         <div
@@ -45,13 +92,10 @@ export default function CardFlip({
               {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
-                  className={cn(
-                    "h-3 rounded-sm bg-gradient-to-r from-primary/30 via-primary/50 to-primary/30 animate-[slideIn_2s_ease-in-out_infinite]",
-                    "opacity-0"
-                  )}
+                  ref={(el) => (barsRef.current[i] = el)}
+                  className="h-3 rounded-sm bg-gradient-to-r from-amber-400/30 via-amber-500/60 to-amber-400/30 opacity-0"
                   style={{
                     width: `${60 + Math.random() * 40}%`,
-                    animationDelay: `${i * 0.2}s`,
                     marginLeft: `${Math.random() * 20}%`,
                   }}
                 />
@@ -60,7 +104,8 @@ export default function CardFlip({
               {/* Central brain icon */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
-                  className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/50 animate-pulse transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
+                  ref={iconRef}
+                  className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/50 transition-all duration-500 group-hover:rotate-12"
                 >
                   <Brain className="h-6 w-6 text-white" />
                 </div>
@@ -80,8 +125,8 @@ export default function CardFlip({
                 </p>
               </div>
               <div className="group/icon relative">
-                <div className="absolute inset-[-8px] rounded-lg transition-opacity duration-300 from-primary/20 via-primary/10 bg-gradient-to-br to-transparent opacity-0 group-hover/icon:opacity-100" />
-                <Zap className="text-primary h-5 w-5 transition-all duration-300 group-hover/icon:scale-110 group-hover/icon:rotate-12" />
+                <div className="absolute inset-[-8px] rounded-lg transition-opacity duration-300 from-amber-400/20 via-amber-500/10 bg-gradient-to-br to-transparent opacity-0 group-hover/icon:opacity-100" />
+                <Zap className="text-amber-400 h-5 w-5 transition-all duration-300 group-hover/icon:scale-110 group-hover/icon:rotate-12" />
               </div>
             </div>
           </div>
@@ -102,7 +147,7 @@ export default function CardFlip({
           <div className="relative z-10 flex-1 space-y-5">
             <div className="space-y-2">
               <div className="mb-2 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary via-primary/90 to-primary/80">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500">
                   <Brain className="h-4 w-4 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-white transition-all duration-500">
@@ -128,8 +173,8 @@ export default function CardFlip({
                       transitionDelay: `${index * 100 + 200}ms`,
                     }}
                   >
-                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-primary/20">
-                      <IconComponent className="text-primary h-3 w-3" />
+                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-amber-500/20">
+                      <IconComponent className="text-amber-400 h-3 w-3" />
                     </div>
                     <span className="font-medium">{feature}</span>
                   </div>
@@ -141,36 +186,21 @@ export default function CardFlip({
           <div className="relative z-10 mt-auto border-t border-gray-700 pt-4">
             <a
               href="/dashboard/content"
-              className="group/start relative flex items-center justify-between rounded-lg p-2.5 transition-all duration-300 bg-gray-800 hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent hover:scale-[1.02] cursor-pointer border border-transparent hover:border-primary/20 no-underline"
+              className="group/start relative flex items-center justify-between rounded-lg p-2.5 transition-all duration-300 bg-gray-800 hover:bg-gradient-to-r hover:from-amber-500/10 hover:via-amber-500/5 hover:to-transparent hover:scale-[1.02] cursor-pointer border border-transparent hover:border-amber-500/20 no-underline"
             >
-              <span className="text-sm font-semibold text-white group-hover/start:text-primary transition-colors duration-300">
+              <span className="text-sm font-semibold text-white group-hover/start:text-amber-400 transition-colors duration-300">
                 Start Learning
               </span>
               <div className="group/icon relative">
-                <div className="absolute inset-[-6px] rounded-lg transition-all duration-300 scale-90 opacity-0 group-hover/start:scale-100 group-hover/start:opacity-100 from-primary/20 via-primary/10 bg-gradient-to-br to-transparent" />
-                <ArrowRight className="text-primary h-4 w-4 transition-all duration-300 group-hover/start:translate-x-1 group-hover/start:scale-110" />
+                <div className="absolute inset-[-6px] rounded-lg transition-all duration-300 scale-90 opacity-0 group-hover/start:scale-100 group-hover/start:opacity-100 from-amber-400/20 via-amber-500/10 bg-gradient-to-br to-transparent" />
+                <ArrowRight className="text-amber-400 h-4 w-4 transition-all duration-300 group-hover/start:translate-x-1 group-hover/start:scale-110" />
               </div>
             </a>
           </div>
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes slideIn {
-          0% {
-            transform: translateX(-100px);
-            opacity: 0;
-          }
-          50% {
-            transform: translateX(0);
-            opacity: 0.8;
-          }
-          100% {
-            transform: translateX(100px);
-            opacity: 0;
-          }
-        }
-      `}</style>
+
     </div>
   );
 }
