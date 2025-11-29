@@ -164,7 +164,7 @@ export default function Header2() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-gray-600 rounded-full flex items-center justify-center border border-gray-600">
                       <User className="h-4 w-4 text-white" />
                     </div>
                     <span>{user?.firstName || 'User'}</span>
@@ -314,7 +314,7 @@ export default function Header2() {
                   {isAuthenticated ? (
                     <>
                       <div className="flex items-center space-x-3 px-4 py-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-gray-600 rounded-full flex items-center justify-center border border-gray-600">
                           <User className="h-4 w-4 text-white" />
                         </div>
                         <span className="text-white font-medium">{user?.firstName || 'User'}</span>
