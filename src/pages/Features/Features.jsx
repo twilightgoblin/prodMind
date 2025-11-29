@@ -84,18 +84,6 @@ export default function FeaturesPage() {
             once: true
           }
         });
-
-        // Floating animation for cards
-        validCards.forEach((card, index) => {
-          gsap.to(card, {
-            y: "+=8",
-            duration: 2 + index * 0.2,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            delay: index * 0.1
-          });
-        });
       }
 
       // Benefits section with slide-in effect
@@ -259,7 +247,7 @@ export default function FeaturesPage() {
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 justify-items-center mb-20">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 justify-items-center mb-32">
         {featuresData.map((item, index) => (
           <div
             key={index}
