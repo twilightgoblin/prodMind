@@ -21,6 +21,13 @@ class PortDetector {
 
   // Detect the first available port from common ports
   async detectAvailablePort() {
+    // Skip port detection in production
+    if (import.meta.env.PROD || import.meta.env.VITE_NODE_ENV === 'production') {
+      this.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://prodmind.onrender.com';
+      console.log(`🚀 Production mode: Using ${this.baseURL}`);
+      return null;
+    }
+
     // First try the environment variable
     const envPort = import.meta.env.VITE_API_BASE_URL?.match(/:(\d+)/)?.[1];
     if (envPort) {
@@ -48,6 +55,11 @@ class PortDetector {
 
   // Get the detected base URL
   getBaseURL() {
+    // In production, always use the production URL
+    if (import.meta.env.PROD || import.meta.env.VITE_NODE_ENV === 'production') {
+      return import.meta.env.VITE_API_BASE_URL || 'https://prodmind.onrender.com';
+    }
+    
     if (!this.baseURL) {
       // Fallback to environment variable or default
       return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';

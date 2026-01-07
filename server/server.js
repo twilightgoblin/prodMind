@@ -50,11 +50,19 @@ const corsOptions = {
       }
     }
     
+    // In production, also allow Vercel preview deployments
+    if (process.env.NODE_ENV === 'production') {
+      if (origin && (origin.includes('.vercel.app') || origin.includes('.onrender.com'))) {
+        return callback(null, true);
+      }
+    }
+    
     // Check against configured origins
     if (corsOrigins.includes(origin)) {
       return callback(null, true);
     }
     
+    console.log(`❌ CORS blocked origin: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
   // Make credentials configurable via env (defaults to true for browser apps)
